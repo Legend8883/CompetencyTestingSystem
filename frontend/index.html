@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход | Система тестирования компетенций</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/auth.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo">
+                    <div class="logo-icon">T</div>
+                    <span>ТестКомп</span>
+                </div>
+                <h1>Вход в систему</h1>
+                <p>Оценка профессиональных компетенций</p>
+            </div>
+            
+            <div id="alert" class="alert hidden"></div>
+            
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" class="form-control" placeholder="Введите ваш email" required>
+                    <div class="error-message" id="emailError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Пароль</label>
+                    <input type="password" id="password" class="form-control" placeholder="Введите пароль" required>
+                    <div class="error-message" id="passwordError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="role" class="form-label">Роль</label>
+                    <select id="role" class="form-control" required>
+                        <option value="">Выберите роль</option>
+                        <option value="hr">HR-специалист</option>
+                        <option value="employee">Сотрудник</option>
+                    </select>
+                    <div class="error-message" id="roleError"></div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                    Войти
+                </button>
+                
+                <div class="auth-footer">
+                    <p>Нет аккаунта? <a href="register.html">Зарегистрироваться</a></p>
+                </div>
+            </form>
+        </div>
+        
+        <div class="auth-info">
+            <h2>Система тестирования компетенций</h2>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <h3>Оценка компетенций</h3>
+                    <p>Автоматизированное тестирование профессиональных навыков</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⏱️</div>
+                    <h3>Экономия времени</h3>
+                    <p>Сокращение времени на оценку сотрудников</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Безопасность данных</h3>
+                    <p>Защита персональных данных и результатов тестирования</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+</body>
+</html>

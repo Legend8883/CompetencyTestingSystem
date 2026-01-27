@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результаты | Система тестирования компетенций</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
+    <style>
+        .results-container {
+            background-color: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+        
+        .result-card {
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .result-passed {
+            border-left: 4px solid var(--success);
+        }
+        
+        .result-failed {
+            border-left: 4px solid var(--danger);
+        }
+        
+        .result-pending {
+            border-left: 4px solid var(--warning);
+        }
+        
+        .score-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            margin: 0 auto;
+        }
+        
+        .score-excellent { background-color: #d1fae5; color: #065f46; }
+        .score-good { background-color: #dbeafe; color: #1e40af; }
+        .score-average { background-color: #fef3c7; color: #92400e; }
+        .score-poor { background-color: #fee2e2; color: #991b1b; }
+        
+        .chart-container {
+            height: 300px;
+            margin: 2rem 0;
+        }
+        
+        .result-details {
+            background-color: var(--light-gray);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="#" class="logo" id="dashboardLink">
+                    <div class="logo-icon">T</div>
+                    <span id="logoText">ТестКомп | Результаты</span>
+                </a>
+                <div class="nav-links">
+                    <a href="#" id="mainLink" class="nav-link">Главная</a>
+                    <a href="results.html" class="nav-link active">Результаты</a>
+                </div>
+                <div class="user-info">
+                    <div class="user-avatar" id="userInitials">U</div>
+                    <div>
+                        <div class="user-name" id="userName">Пользователь</div>
+                        <button onclick="logout()" class="btn btn-sm btn-secondary">Выйти</button>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1 id="resultsTitle">Мои результаты</h1>
+                <p id="resultsSubtitle">История прохождения тестов</p>
+            </div>
+
+            <div class="results-container">
+                <div class="filters mb-4">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="btn-group">
+                                <button class="btn btn-secondary active" onclick="filterResults('all')">Все</button>
+                                <button class="btn btn-secondary" onclick="filterResults('passed')">Пройдены</button>
+                                <button class="btn btn-secondary" onclick="filterResults('failed')">Не пройдены</button>
+                                <button class="btn btn-secondary" onclick="filterResults('pending')">Ожидают</button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-control" id="testFilter">
+                                <option value="">Все тесты</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="resultsList">
+                    <!-- Результаты будут загружены через JS -->
+                </div>
+
+                <div id="noResults" class="text-center hidden">
+                    <p>Нет результатов для отображения</p>
+                </div>
+
+                <div id="hrDashboard" class="hidden">
+                    <h3>Статистика по тестам</h3>
+                    <div class="chart-container">
+                        <!-- График будет вставлен через JS -->
+                        <canvas id="resultsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>Система тестирования профессиональных компетенций © 2026 ГАУ РК "ЦИТ"</p>
+                <p>Разработчик: Ким Богдан Дмитриевич</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/results.js"></script>
+</body>
+</html>

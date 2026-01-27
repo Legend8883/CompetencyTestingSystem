@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель HR | Система тестирования компетенций</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="dashboard-hr.html" class="logo">
+                    <div class="logo-icon">T</div>
+                    <span>ТестКомп | HR</span>
+                </a>
+                
+                <div class="nav-links">
+                    <a href="dashboard-hr.html" class="nav-link active">Главная</a>
+                    <a href="create-test.html" class="nav-link">Создать тест</a>
+                    <a href="check-results.html" class="nav-link">Проверка результатов</a>
+                    <a href="results.html" class="nav-link">Отчеты</a>
+                </div>
+                
+                <div class="user-info">
+                    <div class="user-avatar" id="userInitials">HR</div>
+                    <div>
+                        <div class="user-name" id="userName">HR Специалист</div>
+                        <button onclick="logout()" class="btn btn-sm btn-secondary">Выйти</button>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1>Панель управления тестированием</h1>
+                <p>Управляйте тестами и отслеживайте результаты сотрудников</p>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-content">
+                        <h3>Всего тестов</h3>
+                        <div class="stat-value" id="totalTests">12</div>
+                        <div class="stat-change">+2 за неделю</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-content">
+                        <h3>Сотрудники</h3>
+                        <div class="stat-value" id="totalEmployees">48</div>
+                        <div class="stat-change">+5 за месяц</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-content">
+                        <h3>Пройдено тестов</h3>
+                        <div class="stat-value" id="completedTests">156</div>
+                        <div class="stat-change">85% успешно</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-content">
+                        <h3>Ожидает проверки</h3>
+                        <div class="stat-value" id="pendingReviews">7</div>
+                        <div class="stat-change">3 новых сегодня</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="section">
+                <h2 class="section-title">Быстрые действия</h2>
+                <div class="actions-grid">
+                    <a href="create-test.html" class="action-card">
+                        <div class="action-icon">➕</div>
+                        <h3>Создать новый тест</h3>
+                        <p>Создайте тест с вопросами различных типов</p>
+                    </a>
+                    
+                    <a href="check-results.html" class="action-card">
+                        <div class="action-icon">📝</div>
+                        <h3>Проверить ответы</h3>
+                        <p>Ручная проверка открытых вопросов</p>
+                    </a>
+                    
+                    <a href="results.html" class="action-card">
+                        <div class="action-icon">📈</div>
+                        <h3>Аналитика</h3>
+                        <p>Статистика по всем тестированиям</p>
+                    </a>
+                    
+                    <a href="#" class="action-card" id="assignTestBtn">
+                        <div class="action-icon">🎯</div>
+                        <h3>Назначить тест</h3>
+                        <p>Выберите сотрудников для тестирования</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Tests -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Последние тесты</h2>
+                    <a href="#" class="btn btn-secondary">Все тесты →</a>
+                </div>
+                
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Название теста</th>
+                                <th>Дата создания</th>
+                                <th>Кол-во вопросов</th>
+                                <th>Проходной балл</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentTestsTable">
+                            <!-- Данные будут загружены через JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pending Reviews -->
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Ожидает проверки</h2>
+                    <a href="check-results.html" class="btn btn-primary">Проверить все</a>
+                </div>
+                
+                <div class="cards-grid" id="pendingReviewsGrid">
+                    <!-- Данные будут загружены через JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>Система тестирования профессиональных компетенций © 2026 ГАУ РК "ЦИТ"</p>
+                <p>Разработчик: Ким Богдан Дмитриевич</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal for Assign Test -->
+    <div id="assignTestModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Назначить тест сотрудникам</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Выберите тест</label>
+                    <select class="form-control" id="testSelect">
+                        <option value="">Выберите тест</option>
+                        <option value="1">Java Core тестирование</option>
+                        <option value="2">Spring Framework</option>
+                        <option value="3">Базы данных</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Выберите сотрудников</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="employee" value="1">
+                            <span>Иван Иванов</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="employee" value="2">
+                            <span>Мария Петрова</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="employee" value="3">
+                            <span>Алексей Сидоров</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Дедлайн прохождения</label>
+                    <input type="date" class="form-control" id="deadline">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="assignTest()">Назначить</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/hr-dashboard.js"></script>
+</body>
+</html>
