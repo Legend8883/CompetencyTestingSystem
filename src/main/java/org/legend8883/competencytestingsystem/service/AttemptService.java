@@ -562,7 +562,7 @@ public class AttemptService {
                 }
             }
 
-            System.out.println("Question " + (i+1) + " (ID=" + question.getId() +
+            System.out.println("Question " + (i + 1) + " (ID=" + question.getId() +
                     "): hasAnsweredAnswer=" + hasAnsweredAnswer);
 
             if (!hasAnsweredAnswer) {
