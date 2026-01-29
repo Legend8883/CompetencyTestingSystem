@@ -53,6 +53,11 @@ public class Attempt {
         startedAt = LocalDateTime.now();
         if (test != null && test.getTimeLimitMinutes() != null) {
             autoSubmitAt = startedAt.plusMinutes(test.getTimeLimitMinutes());
+            System.out.println("DEBUG: Setting autoSubmitAt = " + autoSubmitAt +
+                    " (startedAt = " + startedAt +
+                    ", timeLimit = " + test.getTimeLimitMinutes() + " minutes)");
+        } else {
+            System.out.println("WARNING: Test or timeLimitMinutes is null!");
         }
     }
 

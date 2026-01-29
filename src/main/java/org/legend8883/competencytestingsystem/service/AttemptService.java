@@ -8,8 +8,6 @@ import org.legend8883.competencytestingsystem.dto.response.QuestionProgressRespo
 import org.legend8883.competencytestingsystem.dto.response.QuestionWithAnswerResponse;
 import org.legend8883.competencytestingsystem.dto.response.TestProgressResponse;
 import org.legend8883.competencytestingsystem.entity.*;
-import org.legend8883.competencytestingsystem.mapper.AnswerOptionMapper;
-import org.legend8883.competencytestingsystem.mapper.AttemptMapper;
 import org.legend8883.competencytestingsystem.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,35 +27,47 @@ public class AttemptService {
     private final AnswerRepository answerRepository;
     private final AnswerOptionRepository answerOptionRepository;
     private final TestAssignmentRepository testAssignmentRepository;
+    private final UserRepository userRepository;
 
     // Начать тестирование
     @Transactional
     public TestProgressResponse startTest(StartTestRequest request, Long employeeId) {
-        // 1. Проверить что тест назначен сотруднику
-        User employee = new User();
-        employee.setId(employeeId);
+        System.out.println("=== DEBUG startTest ===");
+        System.out.println("Test ID: " + request.getTestId());
+        System.out.println("Employee ID: " + employeeId);
 
+        // 1. Найти сотрудника
+        User employee = userRepository.findById(employeeId)
+                .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
+        System.out.println("Employee found: " + employee.getEmail());
+
+        // 2. Найти тест
         Test test = testRepository.findById(request.getTestId())
-                .orElseThrow(() -> new RuntimeException("Test not found"));
+                .orElseThrow(() -> new RuntimeException("Test not found with id: " + request.getTestId()));
+        System.out.println("Test found: " + test.getTitle());
 
-        // Проверить назначение
+        // 3. Проверить назначение
         Optional<TestAssignment> assignment = testAssignmentRepository
                 .findByUserAndTest(employee, test);
 
         if (assignment.isEmpty()) {
-            throw new RuntimeException("Test is not assigned to you");
+            System.out.println("WARNING: Test is not assigned to employee");
+            // Если хотите разрешить тестирование без назначения, раскомментируйте:
+            // throw new RuntimeException("Test is not assigned to you");
+        } else {
+            System.out.println("Assignment found: " + assignment.get().getId());
+
+            if (!assignment.get().getIsActive()) {
+                throw new RuntimeException("Test assignment is not active");
+            }
+
+            if (assignment.get().getDeadline() != null &&
+                    assignment.get().getDeadline().isBefore(LocalDateTime.now())) {
+                throw new RuntimeException("Test deadline has passed");
+            }
         }
 
-        if (!assignment.get().getIsActive()) {
-            throw new RuntimeException("Test assignment is not active");
-        }
-
-        if (assignment.get().getDeadline() != null &&
-                assignment.get().getDeadline().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Test deadline has passed");
-        }
-
-        // 2. Проверить нет ли активной попытки
+        // 4. Проверить нет ли активной попытки
         Optional<Attempt> activeAttempt = attemptRepository
                 .findByUserAndStatus(employee, AttemptStatus.IN_PROGRESS)
                 .stream()
@@ -65,33 +75,46 @@ public class AttemptService {
                 .findFirst();
 
         if (activeAttempt.isPresent()) {
+            System.out.println("Active attempt found: " + activeAttempt.get().getId());
             // Возвращаем существующую попытку
             return createProgressResponse(activeAttempt.get());
         }
 
-        // 3. Создать новую попытку
+        // 5. Создать новую попытку
         Attempt attempt = new Attempt();
         attempt.setUser(employee);
         attempt.setTest(test);
         attempt.setStatus(AttemptStatus.IN_PROGRESS);
         attempt.setScore(0);
 
+        System.out.println("Creating new attempt...");
         Attempt savedAttempt = attemptRepository.save(attempt);
+        System.out.println("Attempt created with ID: " + savedAttempt.getId());
 
-        // 4. Создать пустые ответы для всех вопросов
+        // 6. Создать пустые ответы для всех вопросов
         List<Question> questions = questionRepository.findByTestWithOptions(test);
-        List<Answer> answers = new ArrayList<>();
+        System.out.println("Test has " + questions.size() + " questions");
 
-        for (Question question : questions) {
-            Answer answer = new Answer();
-            answer.setAttempt(savedAttempt);
-            answer.setQuestion(question);
-            answers.add(answer);
+        if (!questions.isEmpty()) {
+            List<Answer> answers = new ArrayList<>();
+
+            for (Question question : questions) {
+                Answer answer = new Answer();
+                answer.setAttempt(savedAttempt);
+                answer.setQuestion(question);
+                answers.add(answer);
+                System.out.println("Created answer for question: " + question.getId());
+            }
+
+            answerRepository.saveAll(answers);
+            System.out.println("Answers saved: " + answers.size());
         }
 
-        answerRepository.saveAll(answers);
+        TestProgressResponse response = createProgressResponse(savedAttempt);
+        System.out.println("Response created with attemptId: " + response.getAttemptId());
+        System.out.println("=== END DEBUG startTest ===");
 
-        return createProgressResponse(savedAttempt);
+        return response;
     }
 
     // Отправить ответ на вопрос
@@ -183,9 +206,16 @@ public class AttemptService {
         // Рассчитать итоговый балл
         calculateFinalScore(attempt);
 
-        // Обновить статус
+        // Проверить есть ли открытые вопросы
         boolean hasOpenQuestions = hasOpenQuestions(attempt);
-        attempt.setStatus(hasOpenQuestions ? AttemptStatus.EVALUATING : AttemptStatus.COMPLETED);
+
+        if (hasOpenQuestions) {
+            attempt.setStatus(AttemptStatus.EVALUATING);
+        } else {
+            // Нет открытых вопросов - сразу завершаем
+            attempt.setStatus(AttemptStatus.EVALUATED);
+        }
+
         attempt.setCompletedAt(LocalDateTime.now());
 
         attemptRepository.save(attempt);
@@ -202,83 +232,185 @@ public class AttemptService {
             throw new RuntimeException("This attempt belongs to another user");
         }
 
-        return createProgressResponse(attempt);
+        return createFullProgressResponse(attempt);
     }
+
+
+
 
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
 
+    private TestProgressResponse createFullProgressResponse(Attempt attempt) {
+        TestProgressResponse response = new TestProgressResponse();
+
+        // Базовые поля
+        response.setAttemptId(attempt.getId());
+        response.setTestId(attempt.getTest().getId());
+        response.setTestTitle(attempt.getTest().getTitle());
+        response.setStartedAt(attempt.getStartedAt());
+        response.setAutoSubmitAt(attempt.getAutoSubmitAt());
+        response.setTimeLeftMinutes(calculateTimeLeft(attempt));
+
+        // Получаем ВСЕ вопросы теста
+        List<Question> allQuestions = questionRepository.findByTestWithOptions(attempt.getTest());
+        response.setTotalQuestions(allQuestions.size());
+
+        // Получаем ВСЕ ответы
+        List<Answer> allAnswers = answerRepository.findByAttemptWithQuestions(attempt);
+
+        // Создаем прогресс для всех вопросов
+        List<QuestionProgressResponse> questionProgress = createQuestionProgress(allQuestions, allAnswers);
+        response.setQuestionProgress(questionProgress);
+
+        // Находим первый неотвеченный вопрос
+        Question currentQuestion = null;
+        int currentIndex = 0;
+
+        for (int i = 0; i < allQuestions.size(); i++) {
+            Question question = allQuestions.get(i);
+            boolean answered = allAnswers.stream()
+                    .anyMatch(answer ->
+                            answer.getQuestion().getId().equals(question.getId()) &&
+                                    answer.getAnsweredAt() != null);
+
+            if (!answered) {
+                currentQuestion = question;
+                currentIndex = i;
+                break;
+            }
+        }
+
+        // Если все отвечены - берем последний
+        if (currentQuestion == null && !allQuestions.isEmpty()) {
+            currentQuestion = allQuestions.get(allQuestions.size() - 1);
+            currentIndex = allQuestions.size() - 1;
+        }
+
+        response.setCurrentQuestionIndex(currentIndex);
+
+        // Создаем DTO для текущего вопроса
+        if (currentQuestion != null) {
+            QuestionWithAnswerResponse questionResponse = createQuestionWithAnswerResponse(currentQuestion, allAnswers);
+            response.setCurrentQuestion(questionResponse);
+        }
+
+        return response;
+    }
+
+    private QuestionWithAnswerResponse createQuestionWithAnswerResponse(Question question, List<Answer> allAnswers) {
+        QuestionWithAnswerResponse response = new QuestionWithAnswerResponse();
+        response.setId(question.getId());
+        response.setText(question.getText());
+        response.setType(question.getType().name());
+        response.setOrderIndex(question.getOrderIndex());
+
+        // Добавляем варианты ответов
+        if (question.getOptions() != null && !question.getOptions().isEmpty()) {
+            List<AnswerOptionResponse> options = new ArrayList<>();
+            for (AnswerOption option : question.getOptions()) {
+                AnswerOptionResponse optionResponse = new AnswerOptionResponse();
+                optionResponse.setId(option.getId());
+                optionResponse.setText(option.getText());
+                optionResponse.setOrderIndex(option.getOrderIndex());
+                optionResponse.setIsCorrect(false); // Не показываем правильность во время теста
+                options.add(optionResponse);
+            }
+            response.setOptions(options);
+        }
+
+        // Находим предыдущий ответ если есть
+        Optional<Answer> previousAnswer = allAnswers.stream()
+                .filter(a -> a.getQuestion().getId().equals(question.getId()))
+                .findFirst();
+
+        if (previousAnswer.isPresent()) {
+            Answer answer = previousAnswer.get();
+
+            if (question.getType() == QuestionType.OPEN_ANSWER) {
+                response.setPreviousAnswer(answer.getOpenAnswerText());
+            } else if (question.getType() == QuestionType.SINGLE_CHOICE ||
+                    question.getType() == QuestionType.MULTIPLE_CHOICE) {
+                response.setPreviousSelectedOptions(answer.getSelectedOptionIds());
+            }
+        }
+
+        return response;
+    }
+
     private TestProgressResponse createProgressResponse(Attempt attempt) {
+        System.out.println("=== DEBUG createProgressResponse ===");
+        System.out.println("Attempt ID: " + attempt.getId());
+        System.out.println("Test ID: " + (attempt.getTest() != null ? attempt.getTest().getId() : "null"));
+        System.out.println("User ID: " + (attempt.getUser() != null ? attempt.getUser().getId() : "null"));
+
         TestProgressResponse response = new TestProgressResponse();
 
         try {
-            System.out.println("=== DEBUG createProgressResponse ===");
-            System.out.println("Attempt ID: " + attempt.getId());
-            System.out.println("Test ID: " + attempt.getTest().getId());
-
             // Базовые поля
             response.setAttemptId(attempt.getId());
             response.setTestId(attempt.getTest().getId());
             response.setTestTitle(attempt.getTest().getTitle());
             response.setStartedAt(attempt.getStartedAt());
             response.setAutoSubmitAt(attempt.getAutoSubmitAt());
-            response.setTimeLeftMinutes(calculateTimeLeft(attempt));
+
+            // Время
+            Integer timeLeft = calculateTimeLeft(attempt);
+            response.setTimeLeftMinutes(timeLeft);
+            System.out.println("Time left: " + timeLeft + " minutes");
 
             // Получаем вопросы теста
             List<Question> questions = questionRepository.findByTestWithOptions(attempt.getTest());
-            System.out.println("Questions loaded: " + questions.size());
-
-            if (questions.isEmpty()) {
-                System.out.println("WARNING: No questions found for test!");
-            }
-
             response.setTotalQuestions(questions.size());
+            System.out.println("Total questions: " + questions.size());
+
+            // Получаем ответы
+            List<Answer> answers = answerRepository.findByAttemptWithQuestions(attempt);
+            System.out.println("Answers found: " + answers.size());
 
             // Создаем прогресс вопросов
-            List<Answer> answers = answerRepository.findByAttemptWithQuestions(attempt);
-            System.out.println("Answers loaded: " + answers.size());
-
             List<QuestionProgressResponse> questionProgress = createQuestionProgress(questions, answers);
             response.setQuestionProgress(questionProgress);
 
-            // Находим текущий вопрос
-            if (!questions.isEmpty()) {
-                Question question = questions.get(0); // Всегда первый вопрос
-                response.setCurrentQuestionIndex(0);
+            // НАХОДИМ ТЕКУЩИЙ ВОПРОС
+            Question currentQuestion = null;
+            int currentIndex = 0;
 
-                QuestionWithAnswerResponse questionResponse = createSimpleQuestionResponse(question, attempt);
-                response.setCurrentQuestion(questionResponse);
+            for (int i = 0; i < questions.size(); i++) {
+                Question question = questions.get(i);
+                boolean answered = answers.stream()
+                        .anyMatch(answer ->
+                                answer.getQuestion().getId().equals(question.getId()) &&
+                                        answer.getAnsweredAt() != null);
 
-                System.out.println("Current question set: ID=" + question.getId());
-            } else {
-                response.setCurrentQuestionIndex(0);
-                System.out.println("WARNING: No questions available!");
+                if (!answered) {
+                    currentQuestion = question;
+                    currentIndex = i;
+                    break;
+                }
             }
 
-            System.out.println("CurrentQuestion is null? " + (response.getCurrentQuestion() == null));
-            System.out.println("=== END DEBUG ===");
+            // Если все вопросы отвечены, берем последний
+            if (currentQuestion == null && !questions.isEmpty()) {
+                currentQuestion = questions.get(questions.size() - 1);
+                currentIndex = questions.size() - 1;
+            }
+
+            response.setCurrentQuestionIndex(currentIndex);
+            System.out.println("Current question index: " + currentIndex);
+
+            // Создаем DTO для текущего вопроса
+            if (currentQuestion != null) {
+                System.out.println("Current question ID: " + currentQuestion.getId());
+                QuestionWithAnswerResponse questionResponse = createSimpleQuestionResponse(currentQuestion, attempt);
+                response.setCurrentQuestion(questionResponse);
+            }
 
         } catch (Exception e) {
             System.err.println("ERROR in createProgressResponse: " + e.getMessage());
             e.printStackTrace();
         }
 
-        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: если currentQuestion все еще null, устанавливаем его
-        if (response.getCurrentQuestion() == null && response.getTotalQuestions() > 0) {
-            try {
-                // Получаем вопросы еще раз
-                List<Question> questions = questionRepository.findByTestWithOptions(attempt.getTest());
-                if (!questions.isEmpty()) {
-                    Question question = questions.get(0);
-                    response.setCurrentQuestionIndex(0);
-                    QuestionWithAnswerResponse questionResponse = createSimpleQuestionResponse(question, attempt);
-                    response.setCurrentQuestion(questionResponse);
-                    System.out.println("FORCE SET currentQuestion to first question");
-                }
-            } catch (Exception e) {
-                System.err.println("Failed to force set currentQuestion: " + e.getMessage());
-            }
-        }
-
+        System.out.println("=== END DEBUG createProgressResponse ===");
         return response;
     }
 
@@ -333,16 +465,30 @@ public class AttemptService {
     }
 
     private Integer calculateTimeLeft(Attempt attempt) {
-        if (attempt.getAutoSubmitAt() == null || attempt.getCompletedAt() != null) {
+        if (attempt.getAutoSubmitAt() == null) {
+            System.out.println("WARNING: autoSubmitAt is null!");
+            return 0;
+        }
+
+        if (attempt.getCompletedAt() != null) {
+            System.out.println("Test already completed at: " + attempt.getCompletedAt());
             return 0;
         }
 
         LocalDateTime now = LocalDateTime.now();
+        System.out.println("DEBUG: now = " + now + ", autoSubmitAt = " + attempt.getAutoSubmitAt());
+
         if (now.isAfter(attempt.getAutoSubmitAt())) {
+            System.out.println("WARNING: Time's up! now is after autoSubmitAt");
             return 0;
         }
 
-        return (int) java.time.Duration.between(now, attempt.getAutoSubmitAt()).toMinutes();
+        long secondsLeft = java.time.Duration.between(now, attempt.getAutoSubmitAt()).getSeconds();
+        int minutesLeft = (int) Math.max(0, secondsLeft / 60);
+
+        System.out.println("DEBUG: secondsLeft = " + secondsLeft + ", minutesLeft = " + minutesLeft);
+
+        return minutesLeft;
     }
 
     private void calculateScoreForSingleChoice(Answer answer, Question question) {
@@ -450,5 +596,84 @@ public class AttemptService {
                     return !hasAnswer; // Возвращаем вопросы без ответов
                 })
                 .findFirst();
+    }
+
+    public TestProgressResponse getQuestion(Long attemptId, Long questionId, Long employeeId) {
+        Attempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(() -> new RuntimeException("Attempt not found"));
+
+        if (!attempt.getUser().getId().equals(employeeId)) {
+            throw new RuntimeException("This attempt belongs to another user");
+        }
+
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+
+        // Создаем базовый response
+        TestProgressResponse response = new TestProgressResponse();
+        response.setAttemptId(attempt.getId());
+        response.setTestId(attempt.getTest().getId());
+        response.setTestTitle(attempt.getTest().getTitle());
+        response.setStartedAt(attempt.getStartedAt());
+        response.setAutoSubmitAt(attempt.getAutoSubmitAt());
+        response.setTimeLeftMinutes(calculateTimeLeft(attempt));
+
+        // Получаем все вопросы
+        List<Question> questions = questionRepository.findByTestWithOptions(attempt.getTest());
+        response.setTotalQuestions(questions.size());
+
+        // Находим индекс текущего вопроса
+        int currentIndex = -1;
+        for (int i = 0; i < questions.size(); i++) {
+            if (questions.get(i).getId().equals(questionId)) {
+                currentIndex = i;
+                break;
+            }
+        }
+
+        if (currentIndex == -1) {
+            throw new RuntimeException("Question not found in this test");
+        }
+
+        response.setCurrentQuestionIndex(currentIndex);
+
+        // Создаем вопрос с ответом
+        QuestionWithAnswerResponse questionResponse = createSimpleQuestionResponse(question, attempt);
+        response.setCurrentQuestion(questionResponse);
+
+        // Создаем прогресс
+        List<Answer> answers = answerRepository.findByAttemptWithQuestions(attempt);
+        List<QuestionProgressResponse> questionProgress = createQuestionProgress(questions, answers);
+        response.setQuestionProgress(questionProgress);
+
+        return response;
+    }
+
+    public List<TestProgressResponse> getMyAttempts(Long employeeId) {
+        User employee = new User();
+        employee.setId(employeeId);
+
+        List<Attempt> attempts = attemptRepository.findByUser(employee);
+
+        return attempts.stream()
+                .sorted((a1, a2) -> {
+                    if (a1.getCompletedAt() == null && a2.getCompletedAt() == null) return 0;
+                    if (a1.getCompletedAt() == null) return 1;
+                    if (a2.getCompletedAt() == null) return -1;
+                    return a2.getCompletedAt().compareTo(a1.getCompletedAt());
+                })
+                .map(this::createProgressResponse)
+                .toList();
+    }
+
+    public TestProgressResponse goToQuestion(Long attemptId, Long questionId, Long employeeId) {
+        Attempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(() -> new RuntimeException("Attempt not found"));
+
+        if (!attempt.getUser().getId().equals(employeeId)) {
+            throw new RuntimeException("This attempt belongs to another user");
+        }
+
+        return getQuestion(attemptId, questionId, employeeId);
     }
 }

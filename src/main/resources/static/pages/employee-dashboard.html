@@ -92,6 +92,43 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Секция для пройденных тестов -->
+            <div class="result-card"
+                style="margin-top: 2rem; padding: 1.5rem; background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--gray-border);">
+                <h3 style="margin-bottom: 1rem; color: var(--secondary-blue);">📋 Детальные результаты</h3>
+                <p style="color: var(--gray-text); margin-bottom: 1.5rem;">
+                    Нажмите на кнопку "Подробнее" в истории тестирований для просмотра детальных результатов
+                </p>
+
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div style="padding: 1rem; background: var(--primary-verylight); border-radius: var(--radius);">
+                        <div style="font-size: 0.875rem; color: var(--gray-text);">Статус проверки</div>
+                        <div id="evaluation-status"
+                            style="font-weight: 600; color: var(--primary-blue); margin-top: 0.25rem;">
+                            Загрузка...
+                        </div>
+                    </div>
+
+                    <div style="padding: 1rem; background: var(--primary-verylight); border-radius: var(--radius);">
+                        <div style="font-size: 0.875rem; color: var(--gray-text);">Последняя проверка</div>
+                        <div id="last-evaluation"
+                            style="font-weight: 600; color: var(--primary-blue); margin-top: 0.25rem;">
+                            Нет данных
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <button onclick="viewAllResults()" class="btn btn-outline">
+                        📊 Посмотреть все результаты
+                    </button>
+                    <button onclick="refreshDashboard()" class="btn btn-outline" style="margin-left: 1rem;">
+                        🔄 Обновить
+                    </button>
+                </div>
+            </div>
         </main>
 
         <footer class="footer">
@@ -102,6 +139,87 @@
     <script src="../js/api.js"></script>
     <script src="../js/auth.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Ждем немного чтобы DOM полностью загрузился
+            setTimeout(() => {
+                const existingTable = document.getElementById('testsTable');
+
+                if (!existingTable) {
+                    console.log('⚠️ Таблица тестов не найдена, создаю...');
+
+                    // Ищем заголовок "Доступные для прохождения"
+                    const headings = document.querySelectorAll('h3');
+
+                    headings.forEach(h3 => {
+                        if (h3.textContent.includes('Доступные для прохождения')) {
+                            // Создаем таблицу после заголовка
+                            const tableHtml = `
+                        <div class="table-container" style="margin-top: 1rem;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Название теста</th>
+                                        <th>Вопросы</th>
+                                        <th>Время</th>
+                                        <th>Проходной балл</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="testsTable">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; padding: 2rem;">
+                                            Загрузка...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+
+                            h3.insertAdjacentHTML('afterend', tableHtml);
+                            console.log('✅ Таблица создана!');
+                        }
+                    });
+                } else {
+                    console.log('✅ Таблица уже существует');
+                }
+            }, 500);
+        });
+
+
+        // Проверяем что API работает
+        console.log('API Service доступен:', window.apiService ? 'Да' : 'Нет');
+        console.log('Токен:', localStorage.getItem('authToken') ? 'Есть' : 'Нет');
+        console.log('Пользователь:', JSON.parse(localStorage.getItem('user') || '{}'));
+
+        // Принудительно обновляем данные при загрузке
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('DOM загружен, начинаю загрузку данных...');
+
+            // Проверка авторизации
+            const token = localStorage.getItem('authToken');
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+            if (!token || !user || user.role !== 'EMPLOYEE') {
+                console.log('Не авторизован как сотрудник, перенаправляю...');
+                window.location.href = '../login.html';
+                return;
+            }
+
+            console.log('Авторизован как:', user.email, 'Роль:', user.role);
+
+            // Показываем пользователя
+            document.getElementById('userName').textContent = user.firstName + ' ' + user.lastName;
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('userInitials').textContent =
+                (user.firstName[0] || '') + (user.lastName[0] || '');
+
+            // Загружаем данные
+            setTimeout(() => {
+                loadDashboardData();
+            }, 500);
+        });
+
         // Проверяем авторизацию и загружаем данные
         document.addEventListener('DOMContentLoaded', async function () {
             // Проверка авторизации
@@ -123,162 +241,317 @@
             await loadDashboardData();
         });
 
+        async function testLoad() {
+            console.clear();
+            console.log('=== ТЕСТ ЗАГРУЗКИ ===');
+
+            try {
+                const response = await apiService.getAvailableTests();
+                console.log('Полный ответ API:', response);
+                console.log('Data:', response.data);
+
+                tests = response.data || [];
+
+                console.log('Тесты загружены:', tests);
+                console.log('Количество:', tests.length);
+
+                if (tests.length > 0) {
+                    console.log('Первый тест:', JSON.stringify(tests[0], null, 2));
+
+                    // Проверяем структуру
+                    console.log('Есть вопросы?', 'questionCount' in tests[0]);
+                    console.log('Есть isActive?', 'isActive' in tests[0]);
+                    console.log('Есть passingScore?', 'passingScore' in tests[0]);
+                    console.log('Есть timeLimitMinutes?', 'timeLimitMinutes' in tests[0]);
+
+                    alert(`Загружено ${tests.length} тестов\n` +
+                        `Первый: ${tests[0].title}\n` +
+                        `isActive: ${tests[0].isActive}\n` +
+                        `Вопросов: ${tests[0].questionCount}`);
+
+                    // Показываем в таблице
+                    updateTestsTable(tests);
+                } else {
+                    alert('Тесты не загружены или пустые');
+                }
+            } catch (error) {
+                console.error('Ошибка теста:', error);
+                alert('Ошибка: ' + error.message);
+            }
+        }
+
+        function processTests(tests) {
+            if (!tests || !Array.isArray(tests)) return [];
+
+            return tests.map(test => {
+                // Убедимся что все необходимые поля есть
+                return {
+                    id: test.id || 0,
+                    title: test.title || 'Без названия',
+                    description: test.description || '',
+                    timeLimitMinutes: test.timeLimitMinutes || 30,
+                    passingScore: test.passingScore || 70,
+                    isActive: test.isActive !== undefined ? test.isActive : true,
+                    questionCount: test.questionCount || (test.questions ? test.questions.length : 0),
+                    questions: test.questions || [],
+                    createdBy: test.createdBy || { firstName: 'HR', lastName: '' },
+                    createdAt: test.createdAt,
+                    // Добавляем дефолтные значения
+                    maxPossibleScore: test.maxPossibleScore || 100,
+                    updatedAt: test.updatedAt
+                };
+            });
+        }
+
         async function loadDashboardData() {
+            console.log('=== START loadDashboardData ===');
+
             try {
                 // Показываем загрузку
                 document.getElementById('testsTable').innerHTML = `
             <tr>
                 <td colspan="5" style="text-align: center; padding: 2rem;">
-                    Загрузка доступных тестов...
+                    🕐 Загрузка данных...
                 </td>
             </tr>
         `;
 
-                // Загружаем доступные тесты
+                console.log('1. Запрашиваю доступные тесты...');
                 const testsResponse = await apiService.getAvailableTests();
+                console.log('Доступные тесты:', testsResponse.data);
+
                 const tests = testsResponse.data || [];
+                console.log('Тестов получено:', tests.length);
 
                 // Загружаем мои попытки
                 let myAttempts = [];
                 try {
+                    console.log('2. Запрашиваю мои попытки...');
                     const attemptsResponse = await apiService.getMyAttempts();
                     myAttempts = attemptsResponse.data || [];
-                    console.log('My attempts loaded:', myAttempts);
+                    console.log('Попыток получено:', myAttempts.length);
                 } catch (attemptsError) {
-                    console.error('Error loading attempts:', attemptsError);
+                    console.error('Ошибка загрузки попыток:', attemptsError);
                 }
 
-                // Получаем ID тестов, которые уже сданы или на проверке
-                const completedTestIds = myAttempts
-                    .filter(attempt =>
-                        attempt.status === 'EVALUATED' ||
-                        attempt.status === 'EVALUATING' ||
-                        attempt.status === 'COMPLETED'
-                    )
-                    .map(attempt => attempt.testId);
+                // Обновляем статус проверки
+                updateEvaluationStatus(myAttempts);
 
-                console.log('Пройденные тесты ID:', completedTestIds);
-                console.log('Все тесты:', tests.map(t => ({ id: t.id, title: t.title, isActive: t.isActive })));
+                // 1. Фильтруем тесты которые уже начаты или пройдены
+                // ВАЖНО: Убедимся что myAttempts не undefined и есть testId
+                const unavailableTestIds = myAttempts
+                    .filter(attempt => {
+                        // Проверяем что attempt и testId существуют
+                        if (!attempt || !attempt.testId) return false;
 
-                // Фильтруем тесты
+                        const status = attempt.status;
+                        return status === 'IN_PROGRESS' ||
+                            status === 'EVALUATING' ||
+                            status === 'EVALUATED' ||
+                            status === 'COMPLETED';
+                    })
+                    .map(attempt => {
+                        console.log('Блокирующий тест ID:', attempt.testId, 'статус:', attempt.status);
+                        return attempt.testId;
+                    });
+
+                console.log('Заблокированные ID тестов:', unavailableTestIds);
+
+                // 2. Доступные тесты = активные + не начатые
                 const availableTests = tests.filter(test => {
-                    const isActive = test.isActive;
-                    const notCompleted = !completedTestIds.includes(test.id);
-                    console.log(`Тест ${test.id} "${test.title}": активен=${isActive}, не пройден=${notCompleted}`);
-                    return isActive && notCompleted;
+                    if (!test || !test.id) return false;
+
+                    // Проверяем активность теста (может быть true/false/null)
+                    const isActive = test.isActive === true;
+
+                    // Проверяем что тест не в списке заблокированных
+                    // Если myAttempts пустой или testId нет в unavailableTestIds
+                    const notStarted = !unavailableTestIds.includes(test.id);
+
+                    console.log(`Тест ${test.id} "${test.title}": isActive=${isActive}, notStarted=${notStarted}`);
+
+                    return isActive && notStarted;
                 });
 
-                console.log('Available tests after filtering:', availableTests);
+                console.log('Доступные тесты после фильтрации:', availableTests);
 
-                // Обновляем статистику
+                // 3. Обновляем статистику
                 document.getElementById('availableTests').textContent = availableTests.length;
 
-                // Статистика по пройденным тестам
-                const evaluatedAttempts = myAttempts.filter(attempt =>
-                    attempt.status === 'EVALUATED'
-                );
+                // 4. Статистика по попыткам
+                const totalAttempts = myAttempts.length;
+                const completedAttempts = myAttempts.filter(a =>
+                    a.status === 'EVALUATED' || a.status === 'EVALUATING'
+                ).length;
 
-                document.getElementById('completedTests').textContent = evaluatedAttempts.length;
+                document.getElementById('completedTests').textContent = completedAttempts;
+
+                // 5. Рассчитываем средний балл и успешность
+                const evaluatedAttempts = myAttempts.filter(a => a.status === 'EVALUATED');
 
                 if (evaluatedAttempts.length > 0) {
-                    const avgScore = evaluatedAttempts.reduce((sum, a) => sum + (a.score || 0), 0) / evaluatedAttempts.length;
-                    const passedTests = evaluatedAttempts.filter(a => a.passed).length;
-                    const successRate = (passedTests / evaluatedAttempts.length) * 100;
+                    const totalScore = evaluatedAttempts.reduce((sum, a) => sum + (a.score || 0), 0);
+                    const avgScore = Math.round(totalScore / evaluatedAttempts.length);
+                    const passedCount = evaluatedAttempts.filter(a => a.passed === true).length;
+                    const successRate = Math.round((passedCount / evaluatedAttempts.length) * 100);
 
-                    document.getElementById('averageScore').textContent = Math.round(avgScore);
-                    document.getElementById('successRate').textContent = Math.round(successRate) + '%';
+                    document.getElementById('averageScore').textContent = avgScore;
+                    document.getElementById('successRate').textContent = successRate + '%';
+                } else {
+                    document.getElementById('averageScore').textContent = '0';
+                    document.getElementById('successRate').textContent = '0%';
                 }
 
-                // Обновляем таблицу тестов
+                // 6. Обновляем таблицы
                 updateTestsTable(availableTests);
+                updateHistoryTable(myAttempts);
 
-                // Обновляем таблицу истории
-                updateHistoryTable(evaluatedAttempts);
+                console.log('=== END loadDashboardData SUCCESS ===');
 
             } catch (error) {
-                console.error('Ошибка загрузки дашборда:', error);
+                console.error('=== ERROR in loadDashboardData ===', error);
+
                 document.getElementById('testsTable').innerHTML = `
             <tr>
-                <td colspan="5" style="text-align: center; padding: 2rem; color: var(--error);">
-                    Ошибка загрузки тестов: ${error.message}
+                <td colspan="5" style="text-align: center; padding: 2rem; color: #ef4444;">
+                    ❌ Ошибка загрузки: ${error.message}
                 </td>
             </tr>
         `;
             }
         }
 
-        // Добавьте эти вспомогательные функции:
         function updateTestsTable(tests) {
+            console.log('updateTestsTable вызван с:', tests);
+
             const tbody = document.getElementById('testsTable');
 
-            if (tests.length === 0) {
+            if (!tests || tests.length === 0) {
+                console.log('Нет доступных тестов для отображения');
                 tbody.innerHTML = `
             <tr>
-                <td colspan="5" style="text-align: center; padding: 2rem;">
-                    Нет доступных тестов
+                <td colspan="5" style="text-align: center; padding: 3rem; color: #64748b;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+                    <div style="font-size: 1.25rem; margin-bottom: 0.5rem;">Нет доступных тестов</div>
+                    <div style="font-size: 0.875rem; margin-bottom: 1.5rem;">
+                        Возможно, все тесты уже пройдены или находятся на проверке
+                    </div>
+                    <button onclick="loadDashboardData()" class="btn btn-outline">
+                        🔄 Обновить
+                    </button>
                 </td>
             </tr>
         `;
-            } else {
-                tbody.innerHTML = tests.map(test => `
+                return;
+            }
+
+            console.log('Отображаю', tests.length, 'тестов');
+
+            tbody.innerHTML = tests.map(test => {
+                console.log('Тест для отображения:', test);
+
+                // Форматируем время
+                const timeText = test.timeLimitMinutes < 60 ?
+                    `${test.timeLimitMinutes} мин` :
+                    `${Math.floor(test.timeLimitMinutes / 60)} ч ${test.timeLimitMinutes % 60} мин`;
+
+                return `
             <tr>
                 <td>
-                    <strong>${test.title}</strong>
+                    <strong style="color: var(--primary-blue);">${test.title || 'Без названия'}</strong>
                     ${test.description ? `<br><small style="color: var(--gray-text);">${test.description}</small>` : ''}
                 </td>
                 <td>${test.questionCount || 0}</td>
-                <td>${formatTime(test.timeLimitMinutes)}</td>
-                <td>${test.passingScore}%</td>
+                <td>${timeText}</td>
+                <td>${test.passingScore || 0}%</td>
                 <td>
                     <button class="btn btn-primary btn-small" 
-                            onclick="startTest(${test.id})">
+                            onclick="startTest(${test.id})"
+                            style="padding: 0.5rem 1rem; font-size: 0.875rem;">
                         Начать тест
                     </button>
                 </td>
             </tr>
-        `).join('');
-            }
+        `;
+            }).join('');
+
+            console.log('Таблица тестов обновлена');
         }
 
         function updateHistoryTable(attempts) {
             const tbody = document.getElementById('historyTable');
 
-            if (attempts.length === 0) {
+            if (!attempts || attempts.length === 0) {
                 tbody.innerHTML = `
             <tr>
-                <td colspan="5" style="text-align: center; padding: 2rem;">
-                    История тестирований пуста
+                <td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">
+                    Вы еще не проходили тесты
                 </td>
             </tr>
         `;
-            } else {
-                tbody.innerHTML = attempts.map(attempt => `
+                return;
+            }
+
+            // Сортируем по дате завершения (новые сверху)
+            const sortedAttempts = [...attempts].sort((a, b) => {
+                const dateA = a.completedAt ? new Date(a.completedAt) : new Date(a.startedAt);
+                const dateB = b.completedAt ? new Date(b.completedAt) : new Date(b.startedAt);
+                return dateB - dateA;
+            });
+
+            tbody.innerHTML = sortedAttempts.map(attempt => {
+                const statusLabel = getAttemptStatusLabel(attempt.status);
+                const statusClass = getAttemptStatusClass(attempt.status);
+                const date = attempt.completedAt || attempt.startedAt;
+
+                let resultHtml = '';
+                if (attempt.status === 'EVALUATED') {
+                    resultHtml = attempt.passed ?
+                        '<span style="color: #10b981; font-weight: 600;">✓ Пройден</span>' :
+                        '<span style="color: #ef4444; font-weight: 600;">✗ Не пройден</span>';
+                } else if (attempt.status === 'EVALUATING') {
+                    resultHtml = '<span style="color: #f59e0b; font-weight: 600;">⏳ На проверке</span>';
+                } else if (attempt.status === 'IN_PROGRESS') {
+                    resultHtml = '<span style="color: #2563eb; font-weight: 600;">▶ В процессе</span>';
+                }
+
+                return `
             <tr>
-                <td>${attempt.testTitle}</td>
-                <td>${formatDate(attempt.completedAt || attempt.startedAt)}</td>
+                <td>${attempt.testTitle || 'Тест'}</td>
+                <td>${formatDate(date)}</td>
+                <td>${attempt.score !== null && attempt.score !== undefined ?
+                        attempt.score + ' баллов' : 'Ожидает оценки'}</td>
                 <td>
-                    ${attempt.score !== null && attempt.score !== undefined ?
-                        `${attempt.score} баллов` :
-                        'Ожидает оценки'}
+                    <span class="status ${statusClass}">${statusLabel}</span>
                 </td>
                 <td>
-                    <span class="status ${getAttemptStatusClass(attempt.status)}">
-                        ${getAttemptStatusLabel(attempt.status)}
-                    </span>
-                </td>
-                <td>
+                    ${resultHtml}
                     ${attempt.status === 'EVALUATED' ? `
-                        ${attempt.passed ?
-                            '<span style="color: var(--success);">✓ Прошел</span>' :
-                            '<span style="color: var(--error);">✗ Не прошел</span>'}
-                    ` : attempt.status === 'EVALUATING' ?
-                        '<span style="color: var(--warning);">На проверке</span>' :
-                        '<span style="color: var(--gray-text);">Ожидает</span>'
-                    }
+                        <button onclick="viewResults(${attempt.id})" 
+                                class="btn btn-outline btn-small" 
+                                style="margin-left: 10px; padding: 2px 8px; font-size: 12px;">
+                            Подробнее
+                        </button>
+                    ` : ''}
                 </td>
             </tr>
-        `).join('');
-            }
+        `;
+            }).join('');
+        }
+
+        async function viewResults(attemptId) {
+            // Переходим на страницу результатов
+            window.location.href = `test-results.html?attemptId=${attemptId}`;
+        }
+
+        function getAttemptStatusLabel(status) {
+            const statuses = {
+                'IN_PROGRESS': 'В процессе',
+                'COMPLETED': 'Завершен',
+                'EVALUATING': '⏳ На проверке HR',
+                'EVALUATED': '✅ Проверено'
+            };
+            return statuses[status] || status;
         }
 
         function getAttemptStatusClass(status) {
@@ -290,21 +563,17 @@
             }
         }
 
-        function getAttemptStatusLabel(status) {
-            const statuses = {
-                'IN_PROGRESS': 'В процессе',
-                'COMPLETED': 'Завершен',
-                'EVALUATING': 'На проверке',
-                'EVALUATED': 'Проверен'
-            };
-            return statuses[status] || status;
-        }
-
         function formatDate(dateString) {
             if (!dateString) return 'Нет данных';
             try {
                 const date = new Date(dateString);
-                return date.toLocaleDateString('ru-RU');
+                return date.toLocaleDateString('ru-RU', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
             } catch (e) {
                 return dateString;
             }
@@ -340,9 +609,257 @@
         }
 
         function startTest(testId) {
+            console.log('Начинаю тест с ID:', testId);
+
+            // Проверяем что testId корректный
+            if (!testId || isNaN(testId)) {
+                alert('Ошибка: некорректный ID теста');
+                return;
+            }
+
             // Переходим на страницу прохождения теста
-            window.location.href = `take-test.html?id=${testId}`;
+            window.location.href = `take-test-simple.html?id=${testId}`;
         }
+
+        // Функция для просмотра всех результатов
+        function viewAllResults() {
+            const attempts = JSON.parse(localStorage.getItem('myAttempts') || '[]');
+            const evaluatedAttempts = attempts.filter(a => a.status === 'EVALUATED');
+
+            if (evaluatedAttempts.length === 0) {
+                alert('У вас пока нет проверенных тестов');
+                return;
+            }
+
+            // Создаем список для выбора
+            let message = 'Выберите тест для просмотра:\n\n';
+            evaluatedAttempts.forEach((attempt, index) => {
+                const date = formatDate(attempt.completedAt || attempt.startedAt);
+                const score = attempt.score || 0;
+                message += `${index + 1}. ${attempt.testTitle} (${score} баллов, ${date})\n`;
+            });
+
+            const choice = prompt(message + '\nВведите номер теста:');
+            if (!choice) return;
+
+            const index = parseInt(choice) - 1;
+            if (index >= 0 && index < evaluatedAttempts.length) {
+                const attemptId = evaluatedAttempts[index].id;
+                window.location.href = `test-results.html?attemptId=${attemptId}`;
+            } else {
+                alert('Неверный номер');
+            }
+        }
+
+        // Функция обновления дашборда
+        function refreshDashboard() {
+            loadDashboardData();
+            showNotification('Дашборд обновлен', 'success');
+        }
+
+        // Функция уведомления
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = type === 'success' ? 'success-message' : 'info-message';
+            notification.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 1rem; z-index: 1000; border-radius: var(--radius); box-shadow: var(--shadow-lg);';
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        async function loadDashboardData() {
+            console.log('=== START loadDashboardData ===');
+
+            try {
+                // Показываем загрузку
+                document.getElementById('testsTable').innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem;">
+                    🕐 Загрузка данных...
+                </td>
+            </tr>
+        `;
+
+                console.log('1. Запрашиваю доступные тесты...');
+                const testsResponse = await apiService.getAvailableTests();
+                console.log('Доступные тесты:', testsResponse.data);
+
+                const tests = testsResponse.data || [];
+                console.log('Тестов получено:', tests.length);
+
+                // Загружаем мои попытки
+                let myAttempts = [];
+                try {
+                    console.log('2. Запрашиваю мои попытки...');
+                    const attemptsResponse = await apiService.getMyAttempts();
+                    myAttempts = attemptsResponse.data || [];
+                    console.log('Попыток получено:', myAttempts.length);
+                } catch (attemptsError) {
+                    console.error('Ошибка загрузки попыток:', attemptsError);
+                }
+
+                // Обновляем статус проверки
+                updateEvaluationStatus(myAttempts);
+
+                // 1. Фильтруем тесты которые уже начаты или пройдены
+                // ВАЖНО: Убедимся что myAttempts не undefined и есть testId
+                const unavailableTestIds = myAttempts
+                    .filter(attempt => {
+                        // Проверяем что attempt и testId существуют
+                        if (!attempt || !attempt.testId) return false;
+
+                        const status = attempt.status;
+                        return status === 'IN_PROGRESS' ||
+                            status === 'EVALUATING' ||
+                            status === 'EVALUATED' ||
+                            status === 'COMPLETED';
+                    })
+                    .map(attempt => {
+                        console.log('Блокирующий тест ID:', attempt.testId, 'статус:', attempt.status);
+                        return attempt.testId;
+                    });
+
+                console.log('Заблокированные ID тестов:', unavailableTestIds);
+
+                // 2. Доступные тесты = активные + не начатые
+                const availableTests = tests.filter(test => {
+                    if (!test || !test.id) return false;
+
+                    // Проверяем активность теста (может быть true/false/null)
+                    const isActive = test.isActive === true;
+
+                    // Проверяем что тест не в списке заблокированных
+                    // Если myAttempts пустой или testId нет в unavailableTestIds
+                    const notStarted = !unavailableTestIds.includes(test.id);
+
+                    console.log(`Тест ${test.id} "${test.title}": isActive=${isActive}, notStarted=${notStarted}`);
+
+                    return isActive && notStarted;
+                });
+
+                console.log('Доступные тесты после фильтрации:', availableTests);
+
+                // 3. Обновляем статистику
+                document.getElementById('availableTests').textContent = availableTests.length;
+
+                // 4. Статистика по попыткам
+                const totalAttempts = myAttempts.length;
+                const completedAttempts = myAttempts.filter(a =>
+                    a.status === 'EVALUATED' || a.status === 'EVALUATING'
+                ).length;
+
+                document.getElementById('completedTests').textContent = completedAttempts;
+
+                // 5. Рассчитываем средний балл и успешность
+                const evaluatedAttempts = myAttempts.filter(a => a.status === 'EVALUATED');
+
+                if (evaluatedAttempts.length > 0) {
+                    const totalScore = evaluatedAttempts.reduce((sum, a) => sum + (a.score || 0), 0);
+                    const avgScore = Math.round(totalScore / evaluatedAttempts.length);
+                    const passedCount = evaluatedAttempts.filter(a => a.passed === true).length;
+                    const successRate = Math.round((passedCount / evaluatedAttempts.length) * 100);
+
+                    document.getElementById('averageScore').textContent = avgScore;
+                    document.getElementById('successRate').textContent = successRate + '%';
+                } else {
+                    document.getElementById('averageScore').textContent = '0';
+                    document.getElementById('successRate').textContent = '0%';
+                }
+
+                // 6. Обновляем таблицы
+                updateTestsTable(availableTests);
+                updateHistoryTable(myAttempts);
+
+                console.log('=== END loadDashboardData SUCCESS ===');
+
+            } catch (error) {
+                console.error('=== ERROR in loadDashboardData ===', error);
+
+                document.getElementById('testsTable').innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem; color: #ef4444;">
+                    ❌ Ошибка загрузки: ${error.message}
+                </td>
+            </tr>
+        `;
+            }
+        }
+
+        // Функция обновления статуса проверки
+        function updateEvaluationStatus(attempts) {
+            const evaluatingCount = attempts.filter(a => a.status === 'EVALUATING').length;
+            const evaluatedCount = attempts.filter(a => a.status === 'EVALUATED').length;
+
+            document.getElementById('evaluation-status').innerHTML = `
+        <span style="color: ${evaluatingCount > 0 ? 'var(--warning)' : 'var(--success)'}">
+            ${evaluatingCount > 0 ? '⏳ На проверке: ' + evaluatingCount : '✓ Все проверены'}
+        </span>
+    `;
+
+            // Находим последнюю проверку
+            const evaluatedAttempts = attempts.filter(a => a.status === 'EVALUATED');
+            if (evaluatedAttempts.length > 0) {
+                const latest = evaluatedAttempts.sort((a, b) =>
+                    new Date(b.completedAt) - new Date(a.completedAt)
+                )[0];
+
+                document.getElementById('last-evaluation').textContent =
+                    `${latest.testTitle} (${formatDate(latest.completedAt)})`;
+            } else {
+                document.getElementById('last-evaluation').textContent = 'Нет проверенных тестов';
+            }
+        }
+
+        async function testRealApi() {
+            console.clear();
+            console.log('=== ПРОВЕРКА РЕАЛЬНОГО API ===');
+
+            try {
+                // Проверяем доступные тесты
+                const testsResponse = await apiService.getAvailableTests();
+                console.log('✅ API ответил');
+                console.log('Статус:', testsResponse.success);
+                console.log('Сообщение:', testsResponse.message);
+
+                if (testsResponse.data) {
+                    console.log('Количество тестов:', testsResponse.data.length);
+
+                    if (testsResponse.data.length > 0) {
+                        const firstTest = testsResponse.data[0];
+                        console.log('Первый тест:', firstTest);
+                        console.log('ID:', firstTest.id);
+                        console.log('Название:', firstTest.title);
+                        console.log('isActive:', firstTest.isActive);
+                        console.log('questionCount:', firstTest.questionCount);
+                        console.log('passingScore:', firstTest.passingScore);
+                        console.log('timeLimitMinutes:', firstTest.timeLimitMinutes);
+
+                        alert(`✅ API работает!\n\n` +
+                            `Загружено тестов: ${testsResponse.data.length}\n` +
+                            `Первый тест: "${firstTest.title}"\n` +
+                            `Активен: ${firstTest.isActive ? 'Да' : 'Нет'}\n` +
+                            `Вопросов: ${firstTest.questionCount || 'нет данных'}`);
+                    } else {
+                        alert('✅ API работает, но тестов нет');
+                    }
+                } else {
+                    console.log('❌ Данные пустые:', testsResponse);
+                    alert('API вернул пустые данные');
+                }
+
+            } catch (error) {
+                console.error('❌ Ошибка API:', error);
+                alert('❌ Ошибка API: ' + error.message);
+            }
+        }
+
+        <button onclick="testRealApi()" class="btn btn-outline">
+            🧪 Тест реального API
+        </button>
     </script>
 </body>
 
