@@ -62,7 +62,7 @@ public class SecurityConfig {
 
 
                         // Все остальные требуют аутентификации
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

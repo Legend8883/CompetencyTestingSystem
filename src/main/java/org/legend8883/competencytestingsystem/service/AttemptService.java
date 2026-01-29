@@ -3,9 +3,12 @@ package org.legend8883.competencytestingsystem.service;
 import lombok.RequiredArgsConstructor;
 import org.legend8883.competencytestingsystem.dto.request.StartTestRequest;
 import org.legend8883.competencytestingsystem.dto.request.SubmitAnswerRequest;
+import org.legend8883.competencytestingsystem.dto.response.AnswerOptionResponse;
 import org.legend8883.competencytestingsystem.dto.response.QuestionProgressResponse;
+import org.legend8883.competencytestingsystem.dto.response.QuestionWithAnswerResponse;
 import org.legend8883.competencytestingsystem.dto.response.TestProgressResponse;
 import org.legend8883.competencytestingsystem.entity.*;
+import org.legend8883.competencytestingsystem.mapper.AnswerOptionMapper;
 import org.legend8883.competencytestingsystem.mapper.AttemptMapper;
 import org.legend8883.competencytestingsystem.repository.*;
 import org.springframework.stereotype.Service;
@@ -26,7 +29,6 @@ public class AttemptService {
     private final AnswerRepository answerRepository;
     private final AnswerOptionRepository answerOptionRepository;
     private final TestAssignmentRepository testAssignmentRepository;
-    private final AttemptMapper attemptMapper;
 
     // Начать тестирование
     @Transactional
@@ -206,24 +208,141 @@ public class AttemptService {
     // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
 
     private TestProgressResponse createProgressResponse(Attempt attempt) {
-        TestProgressResponse response = attemptMapper.toProgressDto(attempt);
+        TestProgressResponse response = new TestProgressResponse();
 
-        // Заполняем дополнительные поля
-        List<Question> questions = questionRepository.findByTestWithOptions(attempt.getTest());
-        List<Answer> answers = answerRepository.findByAttemptWithQuestions(attempt);
+        try {
+            System.out.println("=== DEBUG createProgressResponse ===");
+            System.out.println("Attempt ID: " + attempt.getId());
+            System.out.println("Test ID: " + attempt.getTest().getId());
 
-        response.setTotalQuestions(questions.size());
-        response.setTimeLeftMinutes(calculateTimeLeft(attempt));
-        response.setQuestionProgress(createQuestionProgress(questions, answers));
+            // Базовые поля
+            response.setAttemptId(attempt.getId());
+            response.setTestId(attempt.getTest().getId());
+            response.setTestTitle(attempt.getTest().getTitle());
+            response.setStartedAt(attempt.getStartedAt());
+            response.setAutoSubmitAt(attempt.getAutoSubmitAt());
+            response.setTimeLeftMinutes(calculateTimeLeft(attempt));
 
-        // Найти текущий вопрос (первый неотвеченный)
-        Optional<Question> currentQuestion = findCurrentQuestion(questions, answers);
-        currentQuestion.ifPresent(question -> {
-            response.setCurrentQuestionIndex(question.getOrderIndex());
-            // TODO: Создать QuestionWithAnswerResponse
-        });
+            // Получаем вопросы теста
+            List<Question> questions = questionRepository.findByTestWithOptions(attempt.getTest());
+            System.out.println("Questions loaded: " + questions.size());
+
+            if (questions.isEmpty()) {
+                System.out.println("WARNING: No questions found for test!");
+            }
+
+            response.setTotalQuestions(questions.size());
+
+            // Создаем прогресс вопросов
+            List<Answer> answers = answerRepository.findByAttemptWithQuestions(attempt);
+            System.out.println("Answers loaded: " + answers.size());
+
+            List<QuestionProgressResponse> questionProgress = createQuestionProgress(questions, answers);
+            response.setQuestionProgress(questionProgress);
+
+            // Находим текущий вопрос
+            if (!questions.isEmpty()) {
+                Question question = questions.get(0); // Всегда первый вопрос
+                response.setCurrentQuestionIndex(0);
+
+                QuestionWithAnswerResponse questionResponse = createSimpleQuestionResponse(question, attempt);
+                response.setCurrentQuestion(questionResponse);
+
+                System.out.println("Current question set: ID=" + question.getId());
+            } else {
+                response.setCurrentQuestionIndex(0);
+                System.out.println("WARNING: No questions available!");
+            }
+
+            System.out.println("CurrentQuestion is null? " + (response.getCurrentQuestion() == null));
+            System.out.println("=== END DEBUG ===");
+
+        } catch (Exception e) {
+            System.err.println("ERROR in createProgressResponse: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: если currentQuestion все еще null, устанавливаем его
+        if (response.getCurrentQuestion() == null && response.getTotalQuestions() > 0) {
+            try {
+                // Получаем вопросы еще раз
+                List<Question> questions = questionRepository.findByTestWithOptions(attempt.getTest());
+                if (!questions.isEmpty()) {
+                    Question question = questions.get(0);
+                    response.setCurrentQuestionIndex(0);
+                    QuestionWithAnswerResponse questionResponse = createSimpleQuestionResponse(question, attempt);
+                    response.setCurrentQuestion(questionResponse);
+                    System.out.println("FORCE SET currentQuestion to first question");
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to force set currentQuestion: " + e.getMessage());
+            }
+        }
 
         return response;
+    }
+
+    private QuestionWithAnswerResponse createSimpleQuestionResponse(Question question, Attempt attempt) {
+        System.out.println("=== DEBUG createSimpleQuestionResponse ===");
+        System.out.println("Question ID: " + question.getId());
+        System.out.println("Question Type: " + question.getType());
+        System.out.println("Question has options field? " + (question.getOptions() != null));
+
+        if (question.getOptions() != null) {
+            System.out.println("Options list size: " + question.getOptions().size());
+
+            // Проверим каждый вариант БЕЗ вызова toString() для всего объекта
+            for (int i = 0; i < question.getOptions().size(); i++) {
+                AnswerOption option = question.getOptions().get(i);
+                System.out.println("  Option[" + i + "]: ID=" + option.getId() +
+                        ", Text length=" + (option.getText() != null ? option.getText().length() : "null") +
+                        ", IsCorrect=" + option.getIsCorrect());
+            }
+        } else {
+            System.out.println("WARNING: question.getOptions() is NULL!");
+        }
+
+        QuestionWithAnswerResponse response = new QuestionWithAnswerResponse();
+        response.setId(question.getId());
+        response.setText(question.getText());
+        response.setType(question.getType().name());
+        response.setOrderIndex(question.getOrderIndex());
+
+        // Добавляем варианты ответов
+        if (question.getOptions() != null && !question.getOptions().isEmpty()) {
+            List<AnswerOptionResponse> options = new ArrayList<>();
+            for (AnswerOption option : question.getOptions()) {
+                AnswerOptionResponse optionResponse = new AnswerOptionResponse();
+                optionResponse.setId(option.getId());
+                optionResponse.setText(option.getText());
+                optionResponse.setOrderIndex(option.getOrderIndex());
+                optionResponse.setIsCorrect(false); // Не показываем фронтенду!
+                options.add(optionResponse);
+                System.out.println("Added option to DTO: ID=" + option.getId() + ", Text length=" + option.getText().length());
+            }
+            response.setOptions(options);
+            System.out.println("Total options in DTO: " + options.size());
+        } else {
+            System.out.println("ERROR: No options to add to DTO!");
+        }
+
+        System.out.println("Final DTO options: " + (response.getOptions() != null ? response.getOptions().size() : "null"));
+        System.out.println("=== END DEBUG createSimpleQuestionResponse ===");
+
+        return response;
+    }
+
+    private Integer calculateTimeLeft(Attempt attempt) {
+        if (attempt.getAutoSubmitAt() == null || attempt.getCompletedAt() != null) {
+            return 0;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (now.isAfter(attempt.getAutoSubmitAt())) {
+            return 0;
+        }
+
+        return (int) java.time.Duration.between(now, attempt.getAutoSubmitAt()).toMinutes();
     }
 
     private void calculateScoreForSingleChoice(Answer answer, Question question) {
@@ -291,30 +410,45 @@ public class AttemptService {
                 });
     }
 
-    private Integer calculateTimeLeft(Attempt attempt) {
-        if (attempt.getAutoSubmitAt() == null || attempt.getCompletedAt() != null) {
-            return 0;
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        if (now.isAfter(attempt.getAutoSubmitAt())) {
-            return 0;
-        }
-
-        return (int) java.time.Duration.between(now, attempt.getAutoSubmitAt()).toMinutes();
-    }
-
     private List<QuestionProgressResponse> createQuestionProgress(
             List<Question> questions, List<Answer> answers) {
-        // TODO: Реализовать создание прогресса вопросов
-        return new ArrayList<>();
+
+        List<QuestionProgressResponse> progress = new ArrayList<>();
+
+        if (questions == null || questions.isEmpty()) {
+            return progress; // Пустой список, а не null
+        }
+
+        for (Question question : questions) {
+            QuestionProgressResponse progressItem = new QuestionProgressResponse();
+            progressItem.setQuestionId(question.getId());
+            progressItem.setOrderIndex(question.getOrderIndex());
+
+            // Проверяем, отвечен ли вопрос
+            boolean answered = answers.stream()
+                    .anyMatch(answer ->
+                            answer.getQuestion().getId().equals(question.getId()) &&
+                                    answer.getAnsweredAt() != null);
+
+            progressItem.setAnswered(answered);
+            progressItem.setVisited(true);
+
+            progress.add(progressItem);
+        }
+
+        return progress;
     }
 
     private Optional<Question> findCurrentQuestion(List<Question> questions, List<Answer> answers) {
+        // Находим первый вопрос без ответа
         return questions.stream()
-                .filter(question -> answers.stream()
-                        .noneMatch(answer -> answer.getQuestion().getId().equals(question.getId())
-                                && answer.getAnsweredAt() != null))
+                .filter(question -> {
+                    boolean hasAnswer = answers.stream()
+                            .anyMatch(answer ->
+                                    answer.getQuestion().getId().equals(question.getId()) &&
+                                            answer.getAnsweredAt() != null);
+                    return !hasAnswer; // Возвращаем вопросы без ответов
+                })
                 .findFirst();
     }
 }

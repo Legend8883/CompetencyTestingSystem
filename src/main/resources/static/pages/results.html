@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="nav-brand">Тестирование компетенций</div>
+            <a href="index.html" class="btn btn-outline">На главную</a>
+        </nav>
+        
+        <main class="auth-container">
+            <div class="auth-card">
+                <h2>Регистрация</h2>
+                <p class="auth-subtitle">Создайте учетную запись</p>
+                
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required placeholder="user@company.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="firstName">Имя</label>
+                        <input type="text" id="firstName" name="firstName" required placeholder="Иван">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lastName">Фамилия</label>
+                        <input type="text" id="lastName" name="lastName" required placeholder="Иванов">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" name="password" required placeholder="Минимум 6 символов">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Подтверждение пароля</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Повторите пароль">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="role">Роль</label>
+                        <select id="role" name="role" required>
+                            <option value="">Выберите роль</option>
+                            <option value="EMPLOYEE">Сотрудник</option>
+                            <option value="HR">HR-специалист</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary btn-block">Зарегистрироваться</button>
+                    </div>
+                </form>
+                
+                <div class="auth-footer">
+                    <p>Уже есть аккаунт? <a href="login.html">Войти</a></p>
+                    <p><a href="index.html">Вернуться на главную</a></p>
+                </div>
+                
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                <div id="successMessage" class="success-message" style="display: none;"></div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const role = document.getElementById('role').value;
+            
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'Пароли не совпадают';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            if (password.length < 6) {
+                errorDiv.textContent = 'Пароль должен содержать минимум 6 символов';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            const userData = {
+                email,
+                firstName,
+                lastName,
+                password,
+                confirmPassword
+            };
+            
+            try {
+                if (role === 'HR') {
+                    await authService.registerHR(userData);
+                } else {
+                    await authService.register(userData);
+                }
+                
+                successDiv.textContent = 'Регистрация успешна! Теперь вы можете войти в систему.';
+                successDiv.style.display = 'block';
+                
+                // Очистка формы
+                document.getElementById('registerForm').reset();
+                
+                // Перенаправление на страницу входа через 3 секунды
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 3000);
+                
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

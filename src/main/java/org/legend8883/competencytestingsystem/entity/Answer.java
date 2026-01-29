@@ -28,11 +28,9 @@ public class Answer {
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
 
-    // Для вопросов с выбором: ID выбранных вариантов
-    @ElementCollection
-    @CollectionTable(name = "selected_options", joinColumns = @JoinColumn(name = "answer_id"))
-    @Column(name = "option_id")
-    private List<Long> selectedOptionIds = new ArrayList<>();
+    // Для вопросов с выбором: выбранные варианты
+    @OneToMany(mappedBy = "answer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<UserSelectedOption> selectedOptions = new ArrayList<>();
 
     // Для открытых вопросов: текстовый ответ
     @Column(name = "open_answer_text", columnDefinition = "TEXT")
@@ -54,24 +52,25 @@ public class Answer {
         answeredAt = LocalDateTime.now();
     }
 
-    // Геттеры для удобства
-    public Question getQuestion() {
-        return question;
-    }
-
-    public Integer getAssignedScore() {
-        return assignedScore;
-    }
-
-    public Integer getAutoScore() {
-        return autoScore;
-    }
-
+    // Геттер для удобства - преобразует selectedOptions в List<Long>
     @Transient
-    public Integer getFinalScore() {
-        if (assignedScore != null) {
-            return assignedScore;
+    public List<Long> getSelectedOptionIds() {
+        return selectedOptions.stream()
+                .map(UserSelectedOption::getOptionId)
+                .toList();
+    }
+
+    // Сеттер для удобства - преобразует List<Long> в selectedOptions
+    @Transient
+    public void setSelectedOptionIds(List<Long> optionIds) {
+        this.selectedOptions.clear();
+        if (optionIds != null) {
+            for (Long optionId : optionIds) {
+                UserSelectedOption userOption = new UserSelectedOption();
+                userOption.setAnswer(this);
+                userOption.setOptionId(optionId);
+                this.selectedOptions.add(userOption);
+            }
         }
-        return autoScore != null ? autoScore : 0;
     }
 }

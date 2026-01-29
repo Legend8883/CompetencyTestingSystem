@@ -20,7 +20,11 @@ public interface AnswerRepository extends JpaRepository<Answer, Long> {
     Optional<Answer> findByAttemptAndQuestion(Attempt attempt, Question question);
 
     // Найти ответы попытки с вопросами
-    @Query("SELECT a FROM Answer a LEFT JOIN FETCH a.question WHERE a.attempt = :attempt ORDER BY a.question.orderIndex")
+    @Query("SELECT DISTINCT a FROM Answer a " +
+            "LEFT JOIN FETCH a.question q " +
+            "LEFT JOIN FETCH q.options " +  // Добавляем загрузку вариантов вопроса
+            "WHERE a.attempt = :attempt " +
+            "ORDER BY q.orderIndex")
     List<Answer> findByAttemptWithQuestions(@Param("attempt") Attempt attempt);
 
     // Найти открытые вопросы требующие проверки

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание теста</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Навигация -->
+        <nav class="navbar">
+            <a href="../index.html" class="nav-brand">Создание теста</a>
+            <a href="hr-dashboard.html" class="btn btn-outline">← Назад в панель</a>
+        </nav>
+        
+        <main>
+            <div class="auth-card" style="max-width: 800px; margin: 0 auto;">
+                <h2>Создание нового теста</h2>
+                <p class="auth-subtitle">Заполните информацию о тесте и добавьте вопросы</p>
+                
+                <form id="testForm">
+                    <!-- Основная информация о тесте -->
+                    <div style="background: var(--primary-verylight); padding: 1.5rem; border-radius: var(--radius); margin-bottom: 2rem;">
+                        <h3 style="margin-bottom: 1rem; color: var(--secondary-blue);">Основные параметры</h3>
+                        
+                        <div class="form-group">
+                            <label for="testTitle">Название теста *</label>
+                            <input type="text" id="testTitle" required 
+                                   placeholder="Например: Тест по Java Basics">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="testDescription">Описание теста</label>
+                            <textarea id="testDescription" 
+                                      placeholder="Краткое описание теста..."></textarea>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div class="form-group">
+                                <label for="timeLimit">Время на прохождение (минут) *</label>
+                                <input type="number" id="timeLimit" min="5" max="180" value="30" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="passingScore">Проходной балл *</label>
+                                <input type="number" id="passingScore" min="0" value="70" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Вопросы -->
+                    <div id="questions-container">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="margin: 0; color: var(--secondary-blue);">Вопросы теста</h3>
+                            <button type="button" onclick="addQuestion()" class="btn btn-primary">
+                                + Добавить вопрос
+                            </button>
+                        </div>
+                        
+                        <div id="questions-list">
+                            <!-- Вопросы будут добавляться динамически -->
+                        </div>
+                    </div>
+
+                    <!-- Кнопки -->
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button type="button" onclick="window.history.back()" class="btn btn-outline" style="flex: 1;">
+                            Отмена
+                        </button>
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">
+                            Создать тест
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="errorMessage" class="error-message" style="display: none; margin-top: 1rem;"></div>
+                <div id="successMessage" class="success-message" style="display: none; margin-top: 1rem;"></div>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            <p>Создание теста</p>
+        </footer>
+    </div>
+    
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        let questionCounter = 0;
+
+        function addQuestion() {
+            questionCounter++;
+            const questionsList = document.getElementById('questions-list');
+            
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question-block';
+            questionDiv.style.cssText = 'background: var(--white); border: 1px solid var(--gray-border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem;';
+            
+            questionDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h4 style="margin: 0; color: var(--primary-blue);">Вопрос #${questionCounter}</h4>
+                    <button type="button" onclick="removeQuestion(this)" class="btn btn-outline btn-small" style="color: var(--error);">
+                        Удалить
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Текст вопроса *</label>
+                    <textarea class="question-text" rows="3" placeholder="Введите текст вопроса..." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Тип вопроса *</label>
+                    <select class="question-type" onchange="changeQuestionType(this)" required>
+                        <option value="">Выберите тип</option>
+                        <option value="SINGLE_CHOICE">Один правильный ответ</option>
+                        <option value="MULTIPLE_CHOICE">Несколько правильных ответов</option>
+                        <option value="OPEN_ANSWER">Открытый ответ</option>
+                    </select>
+                </div>
+                
+                <div class="question-options" style="display: none;">
+                    <label>Варианты ответов:</label>
+                    <div class="options-list" style="margin-top: 0.5rem;"></div>
+                    <button type="button" onclick="addOption(this)" class="btn btn-outline btn-small" style="margin-top: 0.5rem;">
+                        + Добавить вариант
+                    </button>
+                </div>
+                
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label>Баллы за правильный ответ *</label>
+                    <input type="number" class="question-score" min="1" max="100" value="10" required>
+                </div>
+            `;
+            
+            questionsList.appendChild(questionDiv);
+        }
+
+        function removeQuestion(button) {
+            if (document.querySelectorAll('.question-block').length <= 1) {
+                alert('Должен быть хотя бы один вопрос');
+                return;
+            }
+            button.closest('.question-block').remove();
+            updateQuestionNumbers();
+        }
+
+        function updateQuestionNumbers() {
+            const questions = document.querySelectorAll('.question-block');
+            questions.forEach((question, index) => {
+                const header = question.querySelector('h4');
+                if (header) {
+                    header.textContent = `Вопрос #${index + 1}`;
+                }
+            });
+            questionCounter = questions.length;
+        }
+
+        function changeQuestionType(select) {
+            const questionBlock = select.closest('.question-block');
+            const optionsDiv = questionBlock.querySelector('.question-options');
+            
+            if (select.value === 'OPEN_ANSWER') {
+                optionsDiv.style.display = 'none';
+            } else {
+                optionsDiv.style.display = 'block';
+                if (!questionBlock.querySelector('.option-item')) {
+                    addOption(select);
+                    addOption(select);
+                }
+            }
+        }
+
+        function addOption(button) {
+            const questionBlock = button.closest('.question-block');
+            const optionsList = questionBlock.querySelector('.options-list');
+            
+            const optionIndex = optionsList.children.length + 1;
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'option-item';
+            optionDiv.style.cssText = 'display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; padding: 0.5rem; background: var(--gray-light); border-radius: var(--radius);';
+            
+            optionDiv.innerHTML = `
+                <input type="${questionBlock.querySelector('.question-type').value === 'SINGLE_CHOICE' ? 'radio' : 'checkbox'}" 
+                       name="correct-${questionBlock.querySelector('h4').textContent.split('#')[1]}" 
+                       class="option-correct">
+                <input type="text" class="option-text" placeholder="Текст варианта..." style="flex: 1; padding: 0.5rem;">
+                <button type="button" onclick="removeOption(this)" class="btn btn-outline btn-small" style="color: var(--error); padding: 0.25rem 0.5rem;">
+                    ×
+                </button>
+            `;
+            
+            optionsList.appendChild(optionDiv);
+        }
+
+        function removeOption(button) {
+            if (button.closest('.options-list').children.length <= 2) {
+                alert('Должно быть хотя бы 2 варианта');
+                return;
+            }
+            button.closest('.option-item').remove();
+        }
+
+        // Проверяем авторизацию при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('authToken');
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            
+            if (!token || !user || user.role !== 'HR') {
+                window.location.href = '../login.html';
+                return;
+            }
+            
+            // Добавляем первый вопрос по умолчанию
+            addQuestion();
+        });
+
+        // Обработка формы
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            
+            // Собираем данные теста
+            const testData = {
+                title: document.getElementById('testTitle').value.trim(),
+                description: document.getElementById('testDescription').value.trim(),
+                timeLimitMinutes: parseInt(document.getElementById('timeLimit').value),
+                passingScore: parseInt(document.getElementById('passingScore').value),
+                questions: []
+            };
+            
+            // Проверка основных полей
+            if (!testData.title) {
+                showError('Введите название теста');
+                return;
+            }
+            
+            // Собираем вопросы
+            const questionBlocks = document.querySelectorAll('.question-block');
+            if (questionBlocks.length === 0) {
+                showError('Добавьте хотя бы один вопрос');
+                return;
+            }
+            
+            for (let i = 0; i < questionBlocks.length; i++) {
+                const block = questionBlocks[i];
+                const questionText = block.querySelector('.question-text').value.trim();
+                const questionType = block.querySelector('.question-type').value;
+                const questionScore = parseInt(block.querySelector('.question-score').value);
+                
+                if (!questionText) {
+                    showError(`Введите текст вопроса #${i + 1}`);
+                    return;
+                }
+                
+                if (!questionType) {
+                    showError(`Выберите тип вопроса #${i + 1}`);
+                    return;
+                }
+                
+                const question = {
+                    text: questionText,
+                    type: questionType,
+                    maxScore: questionScore,
+                    orderIndex: i
+                };
+                
+                // Добавляем варианты ответов для вопросов с выбором
+                if (questionType !== 'OPEN_ANSWER') {
+                    const options = [];
+                    const optionItems = block.querySelectorAll('.option-item');
+                    
+                    if (optionItems.length < 2) {
+                        showError(`Вопрос #${i + 1}: должно быть минимум 2 варианта ответа`);
+                        return;
+                    }
+                    
+                    let hasCorrectOption = false;
+                    
+                    optionItems.forEach((item, index) => {
+                        const optionText = item.querySelector('.option-text').value.trim();
+                        const isCorrect = item.querySelector('.option-correct').checked;
+                        
+                        if (!optionText) {
+                            showError(`Вопрос #${i + 1}: введите текст варианта ${index + 1}`);
+                            return;
+                        }
+                        
+                        if (isCorrect) hasCorrectOption = true;
+                        
+                        options.push({
+                            text: optionText,
+                            isCorrect: isCorrect,
+                            orderIndex: index
+                        });
+                    });
+                    
+                    if (!hasCorrectOption) {
+                        showError(`Вопрос #${i + 1}: выберите хотя бы один правильный вариант`);
+                        return;
+                    }
+                    
+                    question.options = options;
+                }
+                
+                testData.questions.push(question);
+            }
+            
+            try {
+                const response = await apiService.createTest(testData);
+                successDiv.textContent = 'Тест успешно создан! Перенаправляем в панель HR...';
+                successDiv.style.display = 'block';
+                
+                setTimeout(() => {
+                    window.location.href = 'hr-dashboard.html';
+                }, 2000);
+                
+            } catch (error) {
+                showError('Ошибка создания теста: ' + error.message);
+            }
+        });
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>

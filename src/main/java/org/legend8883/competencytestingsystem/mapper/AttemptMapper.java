@@ -9,15 +9,15 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring", uses = {UserMapper.class})
 public interface AttemptMapper {
 
-    // Entity → TestProgressResponse (для прохождения теста)
+    // Entity → TestProgressResponse
     @Mapping(source = "id", target = "attemptId")
     @Mapping(source = "test.id", target = "testId")
     @Mapping(source = "test.title", target = "testTitle")
     @Mapping(target = "timeLeftMinutes", ignore = true)
-    @Mapping(target = "currentQuestion", ignore = true)
-    @Mapping(target = "currentQuestionIndex", ignore = true)
-    @Mapping(target = "totalQuestions", ignore = true)
-    @Mapping(target = "questionProgress", ignore = true)
+    @Mapping(target = "currentQuestion", ignore = true)  // ← Будет установлен в сервисе
+    @Mapping(target = "currentQuestionIndex", ignore = true)  // ← Будет установлен в сервисе
+    @Mapping(target = "totalQuestions", ignore = true)  // ← Будет установлен в сервисе
+    @Mapping(target = "questionProgress", ignore = true)  // ← Будет установлен в сервисе
     TestProgressResponse toProgressDto(Attempt attempt);
 
     // Entity → TestResultResponse (для детальных результатов)

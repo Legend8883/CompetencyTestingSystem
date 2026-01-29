@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Прохождение теста</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .question-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--gray-border);
+            margin-bottom: 1.5rem;
+        }
+        
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .option-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            border: 2px solid var(--gray-border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--white);
+        }
+        
+        .option-label:hover {
+            border-color: var(--primary-blue);
+            background: var(--primary-verylight);
+        }
+        
+        .option-label.selected {
+            border-color: var(--primary-blue);
+            background: var(--primary-verylight);
+        }
+        
+        .option-input {
+            margin-top: 0.25rem;
+            flex-shrink: 0;
+        }
+        
+        .option-text {
+            flex: 1;
+            line-height: 1.5;
+        }
+        
+        .open-answer-container textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--gray-border);
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 1rem;
+            line-height: 1.5;
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .open-answer-container textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+        
+        .question-nav {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+        
+        .question-nav-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius);
+            border: 1px solid var(--gray-border);
+            background: var(--white);
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .question-nav-btn.current {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+        
+        .question-nav-btn.answered {
+            background: var(--success-light);
+            border-color: var(--success);
+        }
+        
+        .test-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--gray-border);
+        }
+        
+        .timer {
+            background: var(--primary-blue);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: 1.25rem;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .debug-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-top: 2rem;
+            font-family: monospace;
+            font-size: 0.875rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .debug-toggle {
+            background: none;
+            border: none;
+            color: var(--gray-text);
+            cursor: pointer;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <a href="../index.html" class="nav-brand">Прохождение теста</a>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button onclick="toggleDebug()" class="btn btn-outline btn-small">Отладка</button>
+                <a href="employee-dashboard.html" class="btn btn-outline">← Назад к тестам</a>
+            </div>
+        </nav>
+
+        <main>
+            <div id="test-container" style="max-width: 1000px; margin: 0 auto;">
+                <div class="loading" style="text-align: center; padding: 3rem;">
+                    Загрузка теста...
+                </div>
+            </div>
+            
+            <div id="debug-panel" class="debug-panel" style="display: none;">
+                <h4>Отладка теста</h4>
+                <pre id="debug-output"></pre>
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <button onclick="debugGetProgress()" class="btn btn-outline btn-small">Получить прогресс</button>
+                    <button onclick="debugShowState()" class="btn btn-outline btn-small">Показать состояние</button>
+                    <button onclick="debugSaveAllAnswers()" class="btn btn-outline btn-small">Сохранить все ответы</button>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>Прохождение теста</p>
+        </footer>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Глобальные переменные
+        let currentAttempt = null;
+        let currentTest = null;
+        let timerInterval = null;
+        let currentQuestionIndex = 0;
+        let totalQuestions = 0;
+        let testQuestions = [];
+        let userAnswers = {}; // Сохраненные ответы {questionId: answerData}
+        let questionProgress = []; // Прогресс по вопросам
+        
+        // Отладка
+        function debugLog(message, data = null) {
+            console.log(message, data);
+            const debugOutput = document.getElementById('debug-output');
+            if (debugOutput) {
+                debugOutput.textContent += `${new Date().toLocaleTimeString()}: ${message}\n`;
+                if (data) {
+                    debugOutput.textContent += JSON.stringify(data, null, 2) + '\n';
+                }
+                debugOutput.scrollTop = debugOutput.scrollHeight;
+            }
+        }
+        
+        function toggleDebug() {
+            const debugPanel = document.getElementById('debug-panel');
+            debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Загружаем тест при открытии страницы
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Проверка авторизации
+            const token = localStorage.getItem('authToken');
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            
+            if (!token || !user || user.role !== 'EMPLOYEE') {
+                window.location.href = '../login.html';
+                return;
+            }
+            
+            // Получаем ID теста из URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const testId = urlParams.get('id');
+            
+            if (testId) {
+                await startTest(testId);
+            } else {
+                showError('Не указан тест для прохождения');
+            }
+        });
+        
+        async function startTest(testId) {
+            try {
+                debugLog('Начинаем тест с ID:', testId);
+                
+                const response = await apiService.startTest(testId);
+                debugLog('Ответ от startTest:', response);
+                
+                if (!response.success || !response.data) {
+                    throw new Error(response.message || 'Ошибка начала теста');
+                }
+                
+                currentAttempt = response.data.attemptId;
+                currentTest = response.data;
+                currentQuestionIndex = response.data.currentQuestionIndex || 0;
+                totalQuestions = response.data.totalQuestions || 0;
+                
+                debugLog('Данные теста:', {
+                    attemptId: currentAttempt,
+                    testTitle: currentTest.testTitle,
+                    totalQuestions: totalQuestions,
+                    currentQuestionIndex: currentQuestionIndex
+                });
+                
+                // Сохраняем данные в sessionStorage
+                sessionStorage.setItem('currentAttempt', currentAttempt);
+                sessionStorage.setItem('testData', JSON.stringify({
+                    testId: testId,
+                    attemptId: currentAttempt,
+                    testTitle: currentTest.testTitle,
+                    totalQuestions: totalQuestions,
+                    timeLeftMinutes: currentTest.timeLeftMinutes
+                }));
+                
+                renderTest();
+                
+            } catch (error) {
+                console.error('Ошибка начала теста:', error);
+                showError('Ошибка начала теста: ' + error.message);
+            }
+        }
+        
+        function renderTest() {
+            const testContainer = document.getElementById('test-container');
+            
+            testContainer.innerHTML = `
+                <div style="background: var(--white); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-lg);">
+                    <!-- Шапка теста -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--gray-border);">
+                        <div>
+                            <h2 style="margin: 0; color: var(--secondary-blue);">${currentTest.testTitle || 'Тест'}</h2>
+                            <p style="margin: 0.5rem 0 0; color: var(--gray-text);">
+                                Вопрос <span id="current-question-num">1</span> из ${totalQuestions}
+                            </p>
+                        </div>
+                        <div id="timer" class="timer">
+                            ${formatTime(currentTest.timeLeftMinutes * 60)}
+                        </div>
+                    </div>
+                    
+                    <!-- Навигация по вопросам -->
+                    <div id="question-navigation" class="question-nav">
+                        <!-- Кнопки навигации будут добавлены динамически -->
+                    </div>
+                    
+                    <!-- Прогресс бар -->
+                    <div style="margin-bottom: 2rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="font-size: 0.875rem; color: var(--gray-text);">Прогресс</span>
+                            <span style="font-size: 0.875rem; color: var(--primary-blue); font-weight: 600;">
+                                <span id="progress-percent">0</span>%
+                            </span>
+                        </div>
+                        <div style="height: 8px; background: var(--gray-border); border-radius: 4px; overflow: hidden;">
+                            <div id="progress-bar" style="width: 0%; height: 100%; background: var(--primary-blue); transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Область для вопроса -->
+                    <div id="question-area">
+                        <!-- Вопрос будет загружен динамически -->
+                    </div>
+                    
+                    <!-- Панель управления -->
+                    <div class="test-controls">
+                        <button id="prev-btn" class="btn btn-outline" onclick="previousQuestion()" disabled>
+                            ← Предыдущий
+                        </button>
+                        
+                        <div>
+                            <button id="save-btn" class="btn btn-outline" onclick="saveCurrentAnswer()">
+                                Сохранить ответ
+                            </button>
+                            <span id="save-status" style="margin-left: 0.5rem; font-size: 0.875rem; color: var(--gray-text);"></span>
+                        </div>
+                        
+                        <button id="next-btn" class="btn btn-primary" onclick="nextQuestion()">
+                            Следующий →
+                        </button>
+                    </div>
+                    
+                    <!-- Кнопка завершения -->
+                    ${currentQuestionIndex === totalQuestions - 1 ? `
+                        <div style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--gray-border);">
+                            <button class="btn btn-primary btn-large" onclick="completeTest()" style="padding: 1rem 2rem; font-size: 1.125rem;">
+                                Завершить тест
+                            </button>
+                            <p style="margin-top: 0.5rem; color: var(--gray-text); font-size: 0.875rem;">
+                                После завершения теста изменить ответы будет нельзя
+                            </p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            startTimer();
+            loadCurrentQuestion();
+            createQuestionNavigation();
+            updateProgress();
+        }
+        
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            let totalSeconds = (currentTest.timeLeftMinutes || 30) * 60;
+            
+            const updateTimer = () => {
+                const timerElement = document.getElementById('timer');
+                if (!timerElement) return;
+                
+                timerElement.textContent = formatTime(totalSeconds);
+                
+                if (totalSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    autoSubmitTest();
+                    return;
+                }
+                
+                totalSeconds--;
+            };
+            
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+        
+        function formatTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        async function loadCurrentQuestion() {
+            try {
+                debugLog('Загружаем вопрос, индекс:', currentQuestionIndex);
+                
+                // Получаем прогресс теста
+                const response = await apiService.getTestProgress(currentAttempt);
+                debugLog('Прогресс теста:', response);
+                
+                if (!response.success || !response.data) {
+                    throw new Error(response.message || 'Ошибка загрузки вопроса');
+                }
+                
+                const progress = response.data;
+                const question = progress.currentQuestion;
+                questionProgress = progress.questionProgress || [];
+                
+                if (!question) {
+                    throw new Error('Вопрос не найден');
+                }
+                
+                debugLog('Текущий вопрос:', question);
+                
+                // Обновляем номер вопроса
+                document.getElementById('current-question-num').textContent = currentQuestionIndex + 1;
+                
+                // Отображаем вопрос
+                const questionArea = document.getElementById('question-area');
+                questionArea.innerHTML = `
+                    <div class="question-card">
+                        <h3 style="margin-bottom: 1.5rem; color: var(--secondary-blue);">
+                            ${question.text}
+                        </h3>
+                        
+                        ${renderQuestionInput(question)}
+                    </div>
+                `;
+                
+                // Восстанавливаем сохраненный ответ
+                restoreAnswer(question);
+                
+                // Обновляем кнопки навигации
+                updateNavigationButtons();
+                
+            } catch (error) {
+                console.error('Ошибка загрузки вопроса:', error);
+                showError('Ошибка загрузки вопроса: ' + error.message);
+            }
+        }
+        
+        function renderQuestionInput(question) {
+            switch (question.type) {
+                case 'SINGLE_CHOICE':
+                    return `
+                        <div class="options-container">
+                            ${question.options.map((option, index) => `
+                                <label class="option-label" data-option-id="${option.id}">
+                                    <input type="radio" 
+                                           name="answer-${question.id}" 
+                                           value="${option.id}" 
+                                           class="option-input"
+                                           onchange="onOptionChange(this)">
+                                    <span class="option-text">${option.text || `Вариант ${index + 1}`}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    `;
+                    
+                case 'MULTIPLE_CHOICE':
+                    return `
+                        <div class="options-container">
+                            ${question.options.map((option, index) => `
+                                <label class="option-label" data-option-id="${option.id}">
+                                    <input type="checkbox" 
+                                           value="${option.id}" 
+                                           class="option-input"
+                                           onchange="onOptionChange(this)">
+                                    <span class="option-text">${option.text || `Вариант ${index + 1}`}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    `;
+                    
+                case 'OPEN_ANSWER':
+                    return `
+                        <div class="open-answer-container">
+                            <textarea id="open-answer-${question.id}" 
+                                      rows="6" 
+                                      placeholder="Введите ваш ответ..."
+                                      oninput="onOpenAnswerInput(this)"
+                                      maxlength="5000"></textarea>
+                            <div style="font-size: 0.875rem; color: var(--gray-text); margin-top: 0.5rem;">
+                                Максимальная длина: 5000 символов
+                            </div>
+                        </div>
+                    `;
+                    
+                default:
+                    return '<p>Неизвестный тип вопроса</p>';
+            }
+        }
+        
+        function onOptionChange(input) {
+            const questionCard = input.closest('.question-card');
+            const questionId = getCurrentQuestionId();
+            
+            if (!questionId) return;
+            
+            // Для радиокнопок снимаем выделение с других вариантов
+            if (input.type === 'radio') {
+                questionCard.querySelectorAll('.option-label').forEach(label => {
+                    label.classList.remove('selected');
+                });
+            }
+            
+            // Выделяем выбранный вариант
+            const label = input.closest('.option-label');
+            if (input.checked) {
+                label.classList.add('selected');
+            } else {
+                label.classList.remove('selected');
+            }
+            
+            // Автосохранение
+            autoSaveAnswer();
+        }
+        
+        function onOpenAnswerInput(textarea) {
+            autoSaveAnswer();
+        }
+        
+        function autoSaveAnswer() {
+            // Автосохранение через 2 секунды после последнего изменения
+            clearTimeout(window.autoSaveTimeout);
+            window.autoSaveTimeout = setTimeout(() => {
+                saveCurrentAnswer(false); // false = не показывать сообщение
+            }, 2000);
+        }
+        
+        function restoreAnswer(question) {
+            const savedAnswer = userAnswers[question.id];
+            if (!savedAnswer) return;
+            
+            debugLog('Восстанавливаем сохраненный ответ:', savedAnswer);
+            
+            if (question.type === 'OPEN_ANSWER') {
+                const textarea = document.getElementById(`open-answer-${question.id}`);
+                if (textarea && savedAnswer.openAnswerText) {
+                    textarea.value = savedAnswer.openAnswerText;
+                }
+            } else if (question.type === 'SINGLE_CHOICE' && savedAnswer.selectedOptionIds) {
+                const optionId = savedAnswer.selectedOptionIds[0];
+                const radio = document.querySelector(`input[type="radio"][value="${optionId}"]`);
+                if (radio) {
+                    radio.checked = true;
+                    radio.dispatchEvent(new Event('change'));
+                }
+            } else if (question.type === 'MULTIPLE_CHOICE' && savedAnswer.selectedOptionIds) {
+                savedAnswer.selectedOptionIds.forEach(optionId => {
+                    const checkbox = document.querySelector(`input[type="checkbox"][value="${optionId}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        checkbox.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
+        }
+        
+        function createQuestionNavigation() {
+            const navContainer = document.getElementById('question-navigation');
+            
+            if (!navContainer || totalQuestions === 0) return;
+            
+            let navHtml = '';
+            for (let i = 0; i < totalQuestions; i++) {
+                const isCurrent = i === currentQuestionIndex;
+                const isAnswered = questionProgress[i]?.answered || false;
+                
+                let className = 'question-nav-btn';
+                if (isCurrent) className += ' current';
+                if (isAnswered) className += ' answered';
+                
+                navHtml += `
+                    <button class="${className}" onclick="goToQuestion(${i})">
+                        ${i + 1}
+                    </button>
+                `;
+            }
+            
+            navContainer.innerHTML = navHtml;
+        }
+        
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            
+            if (prevBtn) {
+                prevBtn.disabled = currentQuestionIndex === 0;
+            }
+            
+            if (nextBtn) {
+                if (currentQuestionIndex === totalQuestions - 1) {
+                    nextBtn.style.display = 'none';
+                } else {
+                    nextBtn.textContent = 'Следующий →';
+                    nextBtn.style.display = 'inline-block';
+                }
+            }
+        }
+        
+        function updateProgress() {
+            const answeredCount = questionProgress.filter(q => q.answered).length;
+            const progressPercent = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
+            
+            document.getElementById('progress-percent').textContent = progressPercent;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+        }
+        
+        async function saveCurrentAnswer(showMessage = true) {
+            try {
+                const question = await getCurrentQuestion();
+                if (!question) {
+                    debugLog('Не удалось получить текущий вопрос');
+                    return false;
+                }
+                
+                const answerData = getAnswerData(question);
+                if (!answerData) {
+                    if (showMessage) {
+                        showSaveStatus('Ответ не выбран', 'warning');
+                    }
+                    return false;
+                }
+                
+                debugLog('Сохраняем ответ:', { questionId: question.id, answerData });
+                
+                // Сохраняем локально
+                userAnswers[question.id] = answerData;
+                
+                // Отправляем на сервер
+                const response = await apiService.submitAnswer(currentAttempt, question.id, answerData);
+                debugLog('Ответ сохранен на сервере:', response);
+                
+                // Обновляем прогресс
+                if (response.data && response.data.questionProgress) {
+                    questionProgress = response.data.questionProgress;
+                    updateProgress();
+                    createQuestionNavigation();
+                }
+                
+                if (showMessage) {
+                    showSaveStatus('Ответ сохранен ✓', 'success');
+                }
+                
+                return true;
+                
+            } catch (error) {
+                console.error('Ошибка сохранения ответа:', error);
+                if (showMessage) {
+                    showSaveStatus('Ошибка сохранения: ' + error.message, 'error');
+                }
+                return false;
+            }
+        }
+        
+        async function getCurrentQuestion() {
+            try {
+                const response = await apiService.getTestProgress(currentAttempt);
+                if (response.success && response.data) {
+                    return response.data.currentQuestion;
+                }
+                return null;
+            } catch (error) {
+                console.error('Ошибка получения вопроса:', error);
+                return null;
+            }
+        }
+        
+        function getCurrentQuestionId() {
+            const questionCard = document.querySelector('.question-card');
+            if (!questionCard) return null;
+            
+            // Находим ID из данных вопроса (можно извлечь из DOM или использовать текущий вопрос)
+            return Object.keys(userAnswers).find(id => 
+                document.querySelector(`[name^="answer-${id}"]`) || 
+                document.getElementById(`open-answer-${id}`)
+            );
+        }
+        
+        function getAnswerData(question) {
+            if (question.type === 'OPEN_ANSWER') {
+                const textarea = document.getElementById(`open-answer-${question.id}`);
+                const answerText = textarea?.value.trim();
+                
+                if (!answerText) return null;
+                
+                return {
+                    openAnswerText: answerText
+                };
+            } else {
+                let selectedOptions = [];
+                
+                if (question.type === 'SINGLE_CHOICE') {
+                    const selectedRadio = document.querySelector(`input[type="radio"][name^="answer-${question.id}"]:checked`);
+                    if (selectedRadio) {
+                        selectedOptions = [parseInt(selectedRadio.value)];
+                    }
+                } else if (question.type === 'MULTIPLE_CHOICE') {
+                    const selectedCheckboxes = document.querySelectorAll(`input[type="checkbox"][value]:checked`);
+                    selectedOptions = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
+                }
+                
+                if (selectedOptions.length === 0) return null;
+                
+                return {
+                    selectedOptionIds: selectedOptions
+                };
+            }
+        }
+        
+        function showSaveStatus(message, type) {
+            const statusElement = document.getElementById('save-status');
+            if (!statusElement) return;
+            
+            statusElement.textContent = message;
+            statusElement.style.color = type === 'success' ? 'var(--success)' : 
+                                       type === 'error' ? 'var(--error)' : 
+                                       type === 'warning' ? 'var(--warning)' : 
+                                       'var(--gray-text)';
+            
+            // Автоматически скрываем сообщение через 3 секунды
+            setTimeout(() => {
+                statusElement.textContent = '';
+            }, 3000);
+        }
+        
+        async function nextQuestion() {
+            // Сохраняем текущий ответ
+            await saveCurrentAnswer(false);
+            
+            if (currentQuestionIndex < totalQuestions - 1) {
+                currentQuestionIndex++;
+                await loadCurrentQuestion();
+            }
+        }
+        
+        async function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                // Сохраняем текущий ответ
+                await saveCurrentAnswer(false);
+                
+                currentQuestionIndex--;
+                await loadCurrentQuestion();
+            }
+        }
+        
+        async function goToQuestion(index) {
+            if (index >= 0 && index < totalQuestions) {
+                // Сохраняем текущий ответ перед переходом
+                await saveCurrentAnswer(false);
+                
+                currentQuestionIndex = index;
+                await loadCurrentQuestion();
+            }
+        }
+        
+        async function completeTest() {
+            if (!confirm('Вы уверены, что хотите завершить тест?\n\nПосле завершения изменить ответы будет нельзя.')) {
+                return;
+            }
+            
+            try {
+                // Сохраняем последний ответ
+                await saveCurrentAnswer(false);
+                
+                debugLog('Завершаем тест...', currentAttempt);
+                
+                const response = await apiService.completeTest(currentAttempt);
+                debugLog('Тест завершен:', response);
+                
+                // Очищаем данные
+                sessionStorage.removeItem('currentAttempt');
+                sessionStorage.removeItem('testData');
+                userAnswers = {};
+                
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                }
+                
+                // Показываем сообщение в зависимости от типа вопросов
+                const hasOpenQuestions = currentTest?.questions?.some(q => q.type === 'OPEN_ANSWER');
+                
+                if (hasOpenQuestions) {
+                    alert('✅ Тест завершен!\n\nОткрытые вопросы отправлены на проверку HR.\nРезультаты будут доступны после проверки.');
+                } else {
+                    alert('✅ Тест завершен!\n\nРезультаты будут доступны в вашем профиле.');
+                }
+                
+                window.location.href = 'employee-dashboard.html';
+                
+            } catch (error) {
+                console.error('Ошибка завершения теста:', error);
+                alert('❌ Ошибка завершения теста: ' + error.message);
+            }
+        }
+        
+        async function autoSubmitTest() {
+            try {
+                debugLog('Время вышло! Автоматическое завершение теста...');
+                
+                const response = await apiService.completeTest(currentAttempt);
+                debugLog('Тест автоматически завершен:', response);
+                
+                sessionStorage.removeItem('currentAttempt');
+                sessionStorage.removeItem('testData');
+                userAnswers = {};
+                
+                alert('⏰ Время вышло! Тест автоматически завершен.');
+                window.location.href = 'employee-dashboard.html';
+                
+            } catch (error) {
+                console.error('Ошибка авто-завершения:', error);
+            }
+        }
+        
+        function showError(message) {
+            const testContainer = document.getElementById('test-container');
+            testContainer.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <div style="color: var(--error); font-size: 1.5rem; margin-bottom: 1rem;">⚠️</div>
+                    <h3 style="color: var(--error); margin-bottom: 1rem;">Ошибка</h3>
+                    <p style="margin-bottom: 1.5rem; color: var(--gray-dark);">${message}</p>
+                    <a href="employee-dashboard.html" class="btn btn-primary">
+                        Вернуться к тестам
+                    </a>
+                </div>
+            `;
+        }
+        
+        // Функции отладки
+        async function debugGetProgress() {
+            try {
+                const response = await apiService.getTestProgress(currentAttempt);
+                debugLog('Текущий прогресс:', response);
+            } catch (error) {
+                debugLog('Ошибка получения прогресса:', error.message);
+            }
+        }
+        
+        function debugShowState() {
+            debugLog('Состояние теста:', {
+                currentAttempt: currentAttempt,
+                currentQuestionIndex: currentQuestionIndex,
+                totalQuestions: totalQuestions,
+                userAnswers: userAnswers,
+                questionProgress: questionProgress
+            });
+        }
+        
+        async function debugSaveAllAnswers() {
+            for (let i = 0; i < totalQuestions; i++) {
+                currentQuestionIndex = i;
+                await loadCurrentQuestion();
+                await saveCurrentAnswer(false);
+                debugLog(`Сохранен ответ на вопрос ${i + 1}`);
+            }
+            debugLog('Все ответы сохранены');
+        }
+    </script>
+</body>
+</html>
