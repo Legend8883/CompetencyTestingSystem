@@ -6,10 +6,7 @@ import org.legend8883.competencytestingsystem.dto.response.TestResponse;
 import org.legend8883.competencytestingsystem.entity.*;
 import org.legend8883.competencytestingsystem.mapper.QuestionMapper;
 import org.legend8883.competencytestingsystem.mapper.TestMapper;
-import org.legend8883.competencytestingsystem.repository.AnswerOptionRepository;
-import org.legend8883.competencytestingsystem.repository.QuestionRepository;
-import org.legend8883.competencytestingsystem.repository.TestRepository;
-import org.legend8883.competencytestingsystem.repository.UserRepository;
+import org.legend8883.competencytestingsystem.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,17 +73,11 @@ public class TestService {
 
                         AnswerOption option = new AnswerOption();
                         option.setText(optionRequest.getText());
-
-                        // ИСПРАВЛЕНИЕ: гарантируем что isCorrect не null
-                        option.setIsCorrect(optionRequest.getIsCorrect() != null ?
-                                optionRequest.getIsCorrect() : false);
-
+                        option.setIsCorrect(optionRequest.getIsCorrect());
                         option.setQuestion(savedQuestion);
                         option.setOrderIndex(j);
 
                         options.add(option);
-                        System.out.println("DEBUG: Created option - Text: " + option.getText() +
-                                ", isCorrect: " + option.getIsCorrect());
                     }
 
                     answerOptionRepository.saveAll(options);

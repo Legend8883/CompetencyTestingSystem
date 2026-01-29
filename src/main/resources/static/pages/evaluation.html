@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проверка тестов - HR Панель</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <a href="../index.html" class="nav-brand">Проверка тестов</a>
+            <div style="display: flex; gap: 1rem;">
+                <a href="hr-dashboard.html" class="btn btn-outline">← Назад в панель</a>
+                <button onclick="authService.logout()" class="btn btn-outline">Выйти</button>
+            </div>
+        </nav>
+
+        <main>
+            <div class="auth-card" style="max-width: 1000px; margin: 0 auto;">
+                <h2>Проверка открытых вопросов</h2>
+                <p class="auth-subtitle">Здесь вы можете оценить открытые ответы сотрудников</p>
+
+                <div id="evaluation-container">
+                    <!-- Контент будет загружен через JavaScript -->
+                    <div class="loading" style="text-align: center; padding: 3rem;">
+                        Загрузка ответов для проверки...
+                    </div>
+                </div>
+
+                <h3 style="margin: 2rem 0 1rem;">Попытки на проверке</h3>
+                <div id="attempts-container" class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Сотрудник</th>
+                                <th>Тест</th>
+                                <th>Дата завершения</th>
+                                <th>Авто-оценка</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attempts-table">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 2rem;">
+                                    Загрузка попыток...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>Проверка тестов - HR Панель</p>
+        </footer>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Проверка авторизации HR
+            const token = localStorage.getItem('authToken');
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+            if (!token || !user || user.role !== 'HR') {
+                window.location.href = '../login.html';
+                return;
+            }
+
+            await loadEvaluationData();
+        });
+
+        async function loadEvaluationData() {
+            try {
+                // Загружаем открытые вопросы для проверки
+                const openAnswersResponse = await apiService.getOpenAnswers();
+                const openAnswers = openAnswersResponse.data || [];
+
+                console.log('Open answers for evaluation:', openAnswers);
+
+                // Загружаем попытки на проверке
+                const attemptsResponse = await apiService.getAttemptsForEvaluation();
+                const attempts = attemptsResponse.data || [];
+
+                console.log('Attempts for evaluation:', attempts);
+
+                renderOpenAnswers(openAnswers);
+                renderAttemptsTable(attempts);
+
+                console.log('Статусы попыток:', attempts.map(a => ({
+                    id: a.id,
+                    status: a.status,
+                    test: a.testTitle
+                })));
+
+                // Фильтруйте только попытки со статусом EVALUATING
+                const evaluatingAttempts = attempts.filter(a => a.status === 'EVALUATING');
+                console.log('Попытки на проверке:', evaluatingAttempts.length);
+
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+                document.getElementById('evaluation-container').innerHTML = `
+            <div class="error-message">
+                Ошибка загрузки: ${error.message}
+            </div>
+        `;
+            }
+        }
+
+        function renderOpenAnswers(answers) {
+            const container = document.getElementById('evaluation-container');
+
+            if (answers.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; background: var(--gray-light); border-radius: var(--radius);">
+                        <h3 style="color: var(--gray-text); margin-bottom: 1rem;">🎉 Отлично!</h3>
+                        <p>Нет открытых вопросов для проверки. Все ответы уже оценены.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin: 0; color: var(--secondary-blue);">
+                            Открытые вопросы (${answers.length})
+                        </h3>
+                        <div style="font-size: 0.875rem; color: var(--gray-text);">
+                            Максимальный балл за каждый вопрос указан в скобках
+                        </div>
+                    </div>
+                    
+                    <div id="answers-list" style="max-height: 500px; overflow-y: auto; padding-right: 0.5rem;">
+                        ${answers.map(answer => `
+                            <div class="answer-card" data-answer-id="${answer.id}" style="margin-bottom: 1.5rem; padding: 1.5rem; border: 1px solid var(--gray-border); border-radius: var(--radius); background: var(--white);">
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="font-weight: 600; color: var(--gray-dark); margin-bottom: 0.25rem;">
+                                        Вопрос:
+                                    </div>
+                                    <div style="padding: 1rem; background: var(--gray-light); border-radius: var(--radius); border-left: 4px solid var(--primary-blue);">
+                                        ${answer.questionText}
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="font-weight: 600; color: var(--gray-dark); margin-bottom: 0.25rem;">
+                                        Ответ сотрудника:
+                                    </div>
+                                    <div style="padding: 1rem; background: var(--primary-verylight); border-radius: var(--radius); white-space: pre-wrap; font-family: monospace; font-size: 0.875rem;">
+                                        ${answer.openAnswerText || 'Ответ отсутствует'}
+                                    </div>
+                                </div>
+                                
+                                <div style="display: flex; gap: 1rem; align-items: center;">
+                                    <div style="flex: 1;">
+                                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                                            Оценка (0 - ${answer.maxScore} баллов):
+                                        </label>
+                                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                            <input type="number" 
+                                                   class="score-input" 
+                                                   min="0" 
+                                                   max="${answer.maxScore}"
+                                                   value="${answer.assignedScore || 0}"
+                                                   style="flex: 1; padding: 0.5rem; border: 1px solid var(--gray-border); border-radius: var(--radius);">
+                                            <span style="color: var(--gray-text);">/ ${answer.maxScore}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <button onclick="saveScore(${answer.id})" class="btn btn-primary">
+                                            Сохранить оценку
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div id="status-${answer.id}" style="margin-top: 0.5rem; font-size: 0.875rem;"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function saveScore(answerId) {
+            const answerCard = document.querySelector(`.answer-card[data-answer-id="${answerId}"]`);
+            const scoreInput = answerCard.querySelector('.score-input');
+            const statusDiv = document.getElementById(`status-${answerId}`);
+
+            const score = parseInt(scoreInput.value);
+            const maxScore = parseInt(scoreInput.max);
+
+            if (score < 0 || score > maxScore) {
+                statusDiv.innerHTML = '<span style="color: var(--error);">Оценка должна быть от 0 до ' + maxScore + '</span>';
+                return;
+            }
+
+            try {
+                statusDiv.innerHTML = '<span style="color: var(--gray-text);">Сохранение...</span>';
+                await apiService.evaluateAnswer(answerId, score);
+
+                statusDiv.innerHTML = '<span style="color: var(--success);">✓ Оценка сохранена</span>';
+
+                // Обновляем данные через 2 секунды
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                    loadEvaluationData();
+                }, 2000);
+
+            } catch (error) {
+                statusDiv.innerHTML = '<span style="color: var(--error);">Ошибка: ' + error.message + '</span>';
+            }
+        }
+
+        function renderAttemptsTable(attempts) {
+            const tbody = document.getElementById('attempts-table');
+
+            if (attempts.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem;">
+                            Нет попыток на проверке
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = attempts.map(attempt => `
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;">${attempt.user.firstName} ${attempt.user.lastName}</div>
+                        <div style="font-size: 0.875rem; color: var(--gray-text);">${attempt.user.email}</div>
+                    </td>
+                    <td>${attempt.testTitle}</td>
+                    <td>${formatDate(attempt.completedAt)}</td>
+                    <td>
+                        ${attempt.score !== null ? attempt.score + ' баллов' : 'Не оценен'}
+                    </td>
+                    <td>
+                        <span class="status ${getAttemptStatusClass(attempt.status)}">
+                            ${getAttemptStatusLabel(attempt.status)}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-small" onclick="viewAttemptDetails(${attempt.id})">
+                            Подробнее
+                        </button>
+                        ${attempt.status === 'EVALUATING' ? `
+                            <button class="btn btn-outline btn-small" onclick="completeEvaluation(${attempt.id})">
+                                Завершить проверку
+                            </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Нет данных';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        function getAttemptStatusClass(status) {
+            switch (status) {
+                case 'EVALUATING': return 'status-pending';
+                case 'EVALUATED': return 'status-active';
+                case 'COMPLETED': return 'status-inactive';
+                default: return 'status-inactive';
+            }
+        }
+
+        function getAttemptStatusLabel(status) {
+            const statuses = {
+                'IN_PROGRESS': 'В процессе',
+                'COMPLETED': 'Завершен',
+                'EVALUATING': 'На проверке',
+                'EVALUATED': 'Проверен'
+            };
+            return statuses[status] || status;
+        }
+
+        async function viewAttemptDetails(attemptId) {
+            try {
+                // Здесь можно реализовать просмотр деталей попытки
+                alert('Детали попытки будут реализованы в следующей версии. ID попытки: ' + attemptId);
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
+        }
+
+        async function completeEvaluation(attemptId) {
+            if (!confirm('Завершить проверку этой попытки? После завершения оценки нельзя будет изменить.')) {
+                return;
+            }
+
+            try {
+                await apiService.completeEvaluation(attemptId);
+                alert('Проверка завершена! Результаты отправлены сотруднику.');
+                loadEvaluationData();
+            } catch (error) {
+                alert('Ошибка завершения проверки: ' + error.message);
+            }
+        }
+    </script>
+</body>
+
+</html>

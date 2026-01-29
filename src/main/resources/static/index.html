@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тестирование компетенций</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Навигация -->
+        <nav class="navbar">
+            <a href="index.html" class="nav-brand">Тестирование компетенций</a>
+            <div id="auth-buttons">
+                <!-- Будет заполнено через JavaScript -->
+                <a href="login.html" class="btn btn-outline">Вход</a>
+                <a href="register.html" class="btn btn-primary">Регистрация</a>
+            </div>
+        </nav>
+
+        <!-- Главный контент -->
+        <main>
+            <section class="hero">
+                <h1>Система оценки профессиональных компетенций</h1>
+                <p class="subtitle">
+                    Простая платформа для тестирования навыков специалистов.
+                    Создавайте тесты и проходите их онлайн.
+                </p>
+
+                <div id="main-cta" class="cta-buttons">
+                    <!-- Будет заполнено через JavaScript -->
+                    <a href="register.html" class="btn btn-primary btn-large">Начать работу</a>
+                    <a href="#features" class="btn btn-outline btn-large">Узнать больше</a>
+                </div>
+            </section>
+
+            <!-- Возможности -->
+            <section id="features">
+                <h2 style="text-align: center; margin-bottom: 2rem; color: var(--secondary-blue);">Возможности системы
+                </h2>
+
+                <div class="features" style="max-width: 800px; margin: 0 auto;">
+                    <div class="feature-card">
+                        <div class="feature-icon">👔</div>
+                        <h3>Для HR-специалистов</h3>
+                        <ul style="text-align: left; margin-top: 1rem; padding-left: 1.5rem;">
+                            <li>Создание тестов с разными типами вопросов</li>
+                            <li>Назначение тестов сотрудникам</li>
+                            <li>Проверка открытых вопросов</li>
+                            <li>Просмотр результатов тестирования</li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">👨‍💼</div>
+                        <h3>Для сотрудников</h3>
+                        <ul style="text-align: left; margin-top: 1rem; padding-left: 1.5rem;">
+                            <li>Прохождение тестов онлайн</li>
+                            <li>Таймер и сохранение прогресса</li>
+                            <li>Просмотр своих результатов</li>
+                            <li>История пройденных тестов</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Блок для зарегистрированных пользователей -->
+            <section id="user-section" style="margin: 4rem 0; display: none;">
+                <div
+                    style="background: var(--primary-verylight); padding: 2rem; border-radius: var(--radius-lg); max-width: 600px; margin: 0 auto; text-align: center;">
+                    <h3 style="margin-bottom: 1rem; color: var(--secondary-blue);">Добро пожаловать!</h3>
+                    <p style="color: var(--gray-text); margin-bottom: 1rem;">
+                        Вы уже зарегистрированы в системе. Перейдите в свой профиль для работы с тестами.
+                    </p>
+                    <div id="profile-button-container" style="margin-top: 1.5rem;"></div>
+                </div>
+            </section>
+
+            <!-- Блок для незарегистрированных пользователей -->
+            <section id="register-section" style="margin: 4rem 0; text-align: center;">
+                <div
+                    style="background: var(--primary-verylight); padding: 2rem; border-radius: var(--radius-lg); max-width: 600px; margin: 0 auto;">
+                    <h3 style="margin-bottom: 1rem; color: var(--secondary-blue);">Начать работу</h3>
+                    <p style="color: var(--gray-text); margin-bottom: 1.5rem;">
+                        Зарегистрируйтесь как HR или Сотрудник и начните использовать систему
+                    </p>
+                    <div style="display: flex; gap: 1rem; justify-content: center;">
+                        <a href="register.html" class="btn btn-primary">Зарегистрироваться</a>
+                        <a href="login.html" class="btn btn-outline">Войти</a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Футер -->
+        <footer class="footer">
+            <p>© 2026 Система тестирования компетенций</p>
+            <p style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--gray-text);">
+                Разработано для ГАУ РК "Центр информационных технологий"
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Проверяем авторизацию при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function () {
+            updateUIForAuthStatus();
+        });
+
+        function updateUIForAuthStatus() {
+            const token = localStorage.getItem('authToken');
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+            const authButtons = document.getElementById('auth-buttons');
+            const userSection = document.getElementById('user-section');
+            const registerSection = document.getElementById('register-section');
+            const mainCta = document.getElementById('main-cta');
+
+            if (token && user) {
+                // Пользователь авторизован
+                // 1. Обновляем навигацию - показываем ссылку в личный кабинет
+                authButtons.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a href="${user.role === 'HR' ? 'pages/hr-dashboard.html' : 'pages/employee-dashboard.html'}" 
+                   class="btn btn-outline" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 24px; height: 24px; background: var(--primary-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.75rem;">
+                        ${user.firstName[0]}${user.lastName[0]}
+                    </div>
+                    <span>Личный кабинет</span>
+                </a>
+                <button onclick="logout()" class="btn btn-outline">Выйти</button>
+            </div>
+        `;
+
+                // 2. Обновляем основной CTA
+                mainCta.innerHTML = `
+                    <a href="${user.role === 'HR' ? 'pages/hr-dashboard.html' : 'pages/employee-dashboard.html'}" 
+                       class="btn btn-primary btn-large">
+                        Перейти в профиль
+                    </a>
+                    <a href="#features" class="btn btn-outline btn-large">Узнать больше</a>
+                `;
+
+                // 3. Показываем секцию для авторизованных пользователей
+                userSection.style.display = 'block';
+                registerSection.style.display = 'none';
+
+                // 4. Обновляем кнопку в секции пользователя
+                const profileContainer = document.getElementById('profile-button-container');
+                profileContainer.innerHTML = `
+                    <a href="${user.role === 'HR' ? 'pages/hr-dashboard.html' : 'pages/employee-dashboard.html'}" 
+                       class="btn btn-primary btn-large">
+                        <span>Перейти в ${user.role === 'HR' ? 'HR панель' : 'панель сотрудника'}</span>
+                        <span>→</span>
+                    </a>
+                `;
+
+            } else {
+                // Пользователь не авторизован
+                authButtons.innerHTML = `
+            <a href="login.html" class="btn btn-outline">Вход</a>
+            <a href="register.html" class="btn btn-primary">Регистрация</a>
+            `;
+
+                mainCta.innerHTML = `
+                    <a href="#register-section" class="btn btn-primary btn-large">Начать работу</a>
+                    <a href="#features" class="btn btn-outline btn-large">Узнать больше</a>
+                `;
+
+                userSection.style.display = 'none';
+                registerSection.style.display = 'block';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            updateUIForAuthStatus(); // Обновляем интерфейс
+        }
+    </script>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📝</text></svg>">
+
+</body>
+
+</html>
