@@ -6,12 +6,10 @@ import org.legend8883.competencytestingsystem.dto.request.AssignTestRequest;
 import org.legend8883.competencytestingsystem.dto.request.CreateTestRequest;
 import org.legend8883.competencytestingsystem.dto.request.EvaluateAnswerRequest;
 import org.legend8883.competencytestingsystem.dto.response.*;
-import org.legend8883.competencytestingsystem.entity.Answer;
-import org.legend8883.competencytestingsystem.entity.Attempt;
-import org.legend8883.competencytestingsystem.entity.TestAssignment;
-import org.legend8883.competencytestingsystem.entity.User;
+import org.legend8883.competencytestingsystem.entity.*;
 import org.legend8883.competencytestingsystem.mapper.AnswerMapper;
 import org.legend8883.competencytestingsystem.mapper.AttemptMapper;
+import org.legend8883.competencytestingsystem.repository.AttemptRepository;
 import org.legend8883.competencytestingsystem.service.EvaluationService;
 import org.legend8883.competencytestingsystem.service.TestAssignmentService;
 import org.legend8883.competencytestingsystem.service.TestService;
@@ -33,6 +31,8 @@ public class HrController {
     private final EvaluationService evaluationService;
     private final AnswerMapper answerMapper;
     private final AttemptMapper attemptMapper;
+
+    private final AttemptRepository attemptRepository;
 
     // ========== ТЕСТЫ ==========
 
@@ -149,5 +149,31 @@ public class HrController {
         Attempt attempt = evaluationService.completeEvaluation(attemptId, hr.getId());
         AttemptResponse response = attemptMapper.toAttemptResponse(attempt);
         return ResponseEntity.ok(ApiResponse.success("Проверка завершена", response));
+    }
+
+    @GetMapping("/completed-attempts")
+    public ResponseEntity<ApiResponse<List<AttemptResponse>>> getCompletedAttempts(
+            @AuthenticationPrincipal User hr) {
+        List<Attempt> allAttempts = attemptRepository.findAll();
+
+        // Фильтруем завершенные попытки (COMPLETED или EVALUATED)
+        List<Attempt> completedAttempts = allAttempts.stream()
+                .filter(a -> a.getStatus() == AttemptStatus.COMPLETED ||
+                        a.getStatus() == AttemptStatus.EVALUATED)
+                .toList();
+
+        List<AttemptResponse> response = completedAttempts.stream()
+                .map(attemptMapper::toAttemptResponse)
+                .toList();
+
+        return ResponseEntity.ok(ApiResponse.success("Завершенные попытки", response));
+    }
+
+    @GetMapping("/attempts/{attemptId}/details")
+    public ResponseEntity<ApiResponse<TestResultResponse>> getAttemptDetailsForHR(
+            @PathVariable Long attemptId,
+            @AuthenticationPrincipal User hr) {
+        // TODO: Реализовать детали попытки для HR
+        return ResponseEntity.ok(ApiResponse.success("Детали попытки", null));
     }
 }

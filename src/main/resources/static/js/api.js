@@ -35,36 +35,6 @@ class ApiService {
         return headers;
     }
 
-    async getTestDetails(testId) {
-        console.log('Fetching test details:', testId);
-
-        const response = await fetch(`${API_BASE_URL}/employee/tests/${testId}/details`, {
-            headers: this.getHeaders()
-        });
-
-        return this.handleResponse(response);
-    }
-
-    async getTestResults(attemptId) {
-        console.log('Fetching test results for attempt:', attemptId);
-
-        const response = await fetch(`${API_BASE_URL}/employee/attempts/${attemptId}/results`, {
-            headers: this.getHeaders()
-        });
-
-        return this.handleResponse(response);
-    }
-
-    async getTestAssignments(testId) {
-        console.log('Fetching test assignments for test:', testId);
-
-        const response = await fetch(`${API_BASE_URL}/hr/tests/${testId}/assignments`, {
-            headers: this.getHeaders()
-        });
-
-        return this.handleResponse(response);
-    }
-
     async getMyAttempts() {
         console.log('Fetching my attempts...');
         const response = await fetch(`${API_BASE_URL}/employee/attempts`, {
@@ -247,36 +217,30 @@ class ApiService {
     }
 
     async startTest(testId) {
-        console.log('API: Starting test with ID:', testId);
-
+        console.log('Starting test:', testId);
         const response = await fetch(`${API_BASE_URL}/employee/tests/start`, {
             method: 'POST',
             headers: this.getHeaders(),
             body: JSON.stringify({ testId })
         });
 
-        console.log('API Response status:', response.status);
-        console.log('API Response headers:', response.headers);
-
-        const data = await this.handleResponse(response);
-        console.log('API Response data:', data);
-
-        return data;
+        return this.handleResponse(response);
     }
 
     async getTestProgress(attemptId) {
-        console.log('API: Getting test progress for attempt:', attemptId);
+        console.log('Fetching test progress for attempt:', attemptId);
+        try {
+            const response = await fetch(`${API_BASE_URL}/employee/attempts/${attemptId}/progress`, {
+                headers: this.getHeaders()
+            });
 
-        const response = await fetch(`${API_BASE_URL}/employee/attempts/${attemptId}/progress`, {
-            headers: this.getHeaders()
-        });
-
-        console.log('Progress API Response status:', response.status);
-
-        const data = await this.handleResponse(response);
-        console.log('Progress API Response data:', data);
-
-        return data;
+            const data = await this.handleResponse(response);
+            console.log('Test progress loaded successfully');
+            return data;
+        } catch (error) {
+            console.error('Error loading test progress:', error);
+            throw error;
+        }
     }
 
     async submitAnswer(attemptId, questionId, answerData) {
@@ -340,6 +304,37 @@ class ApiService {
         const response = await fetch(`${API_BASE_URL}/hr/evaluation/attempts/${attemptId}/complete`, {
             method: 'POST',
             headers: this.getHeaders()
+        });
+
+        return this.handleResponse(response);
+    }
+
+    async getAllQuestions(attemptId) {
+        console.log('Fetching all questions for attempt:', attemptId);
+        const response = await fetch(`${API_BASE_URL}/employee/attempts/${attemptId}/questions`, {
+            headers: this.getHeaders()
+        });
+
+        return this.handleResponse(response);
+    }
+
+    // Получить конкретный вопрос
+    async getQuestion(attemptId, questionId) {
+        console.log('Fetching question:', { attemptId, questionId });
+        const response = await fetch(`${API_BASE_URL}/employee/attempts/${attemptId}/questions/${questionId}`, {
+            headers: this.getHeaders()
+        });
+
+        return this.handleResponse(response);
+    }
+
+    // Перейти к вопросу
+    async goToQuestion(attemptId, questionId) {
+        console.log('Going to question:', { attemptId, questionId });
+        const response = await fetch(`${API_BASE_URL}/employee/attempts/${attemptId}/go-to-question`, {
+            method: 'POST',
+            headers: this.getHeaders(),
+            body: JSON.stringify({ questionId })
         });
 
         return this.handleResponse(response);
