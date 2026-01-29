@@ -1,4 +1,4 @@
-# Dockerfile с использованием Gradle (собирает внутри, не нужен Gradle в системе)
+# Dockerfile с использованием Gradle
 FROM gradle:8.6.0-jdk21-alpine AS builder
 
 WORKDIR /app
@@ -8,7 +8,7 @@ COPY gradlew .
 COPY gradle ./gradle
 COPY build.gradle .
 COPY settings.gradle .
-COPY gradle.properties .
+# Убрал gradle.properties или добавьте условие
 
 # Даем права на выполнение gradlew
 RUN chmod +x gradlew
