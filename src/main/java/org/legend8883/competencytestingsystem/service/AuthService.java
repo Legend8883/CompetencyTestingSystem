@@ -1,6 +1,7 @@
 package org.legend8883.competencytestingsystem.service;
 
 import lombok.RequiredArgsConstructor;
+import org.legend8883.competencytestingsystem.dto.request.CreateTestRequest;
 import org.legend8883.competencytestingsystem.dto.request.LoginRequest;
 import org.legend8883.competencytestingsystem.dto.request.RegisterRequest;
 import org.legend8883.competencytestingsystem.dto.response.AuthResponse;
@@ -9,6 +10,7 @@ import org.legend8883.competencytestingsystem.entity.User;
 import org.legend8883.competencytestingsystem.mapper.UserMapper;
 import org.legend8883.competencytestingsystem.repository.UserRepository;
 import org.legend8883.competencytestingsystem.security.JwtUtil;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,6 +18,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
+
+import java.io.InputStream;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +31,8 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final TestService testService;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -106,6 +113,8 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
+        createDefaultTestForHr(savedUser);
+
         String token = jwtUtil.generateToken(
                 savedUser.getId(),
                 savedUser.getEmail(),
@@ -113,5 +122,23 @@ public class AuthService {
         );
 
         return createAuthResponse(savedUser, token);
+    }
+
+    private void createDefaultTestForHr(User hr) {
+        try {
+            InputStream is = new ClassPathResource(
+                    "tests/java_test_50_questions.json"
+            ).getInputStream();
+
+            CreateTestRequest testRequest =
+                    objectMapper.readValue(is, CreateTestRequest.class);
+
+            testService.createTest(testRequest, hr.getId());
+
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Не удалось создать тест для HR", e
+            );
+        }
     }
 }

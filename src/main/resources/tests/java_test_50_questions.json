@@ -1,0 +1,1088 @@
+{
+  "title": "Java тест (50 вопросов)",
+  "description": "Базовый тест по Java",
+  "timeLimitMinutes": 60,
+  "passingScore": 30,
+  "questions": [
+    {
+      "text": "Что такое JVM?",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Среда выполнения Java программ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Редактор кода",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "База данных",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 1
+    },
+    {
+      "text": "Точка входа в Java программу?",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "main()",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "run()",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "start()",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 2
+    },
+    {
+      "text": "Тип для целых чисел?",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "int",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "String",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "boolean",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 3
+    },
+    {
+      "text": "Ключевое слово наследования?",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "extends",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "implements",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "super",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 4
+    },
+    {
+      "text": "Модификатор доступа только для класса?",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "private",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "public",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "protected",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 5
+    },
+    {
+      "text": "Размер типа int?",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "32 бита",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "16 бит",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "64 бита",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 6
+    },
+    {
+      "text": "Можно ли наследовать несколько классов?",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Нет",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Да",
+          "isCorrect": false,
+          "orderIndex": 2
+        }
+      ],
+      "orderIndex": 7
+    },
+    {
+      "text": "Что делает new?",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Создаёт объект",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Удаляет объект",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Копирует объект",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 8
+    },
+    {
+      "text": "Коллекция без дубликатов?",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Set",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "List",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Map",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 9
+    },
+    {
+      "text": "Метод сравнения объектов?",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "equals()",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "==",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "compare()",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 10
+    },
+    {
+      "text": "Базовый вопрос по Java №11",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 11
+    },
+    {
+      "text": "Базовый вопрос по Java №12",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 12
+    },
+    {
+      "text": "Базовый вопрос по Java №13",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 13
+    },
+    {
+      "text": "Базовый вопрос по Java №14",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 14
+    },
+    {
+      "text": "Базовый вопрос по Java №15",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 15
+    },
+    {
+      "text": "Базовый вопрос по Java №16",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 16
+    },
+    {
+      "text": "Базовый вопрос по Java №17",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 17
+    },
+    {
+      "text": "Базовый вопрос по Java №18",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 18
+    },
+    {
+      "text": "Базовый вопрос по Java №19",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 19
+    },
+    {
+      "text": "Базовый вопрос по Java №20",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 20
+    },
+    {
+      "text": "Базовый вопрос по Java №21",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 21
+    },
+    {
+      "text": "Базовый вопрос по Java №22",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 22
+    },
+    {
+      "text": "Базовый вопрос по Java №23",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 23
+    },
+    {
+      "text": "Базовый вопрос по Java №24",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 24
+    },
+    {
+      "text": "Базовый вопрос по Java №25",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 25
+    },
+    {
+      "text": "Базовый вопрос по Java №26",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 26
+    },
+    {
+      "text": "Базовый вопрос по Java №27",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 27
+    },
+    {
+      "text": "Базовый вопрос по Java №28",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 28
+    },
+    {
+      "text": "Базовый вопрос по Java №29",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 29
+    },
+    {
+      "text": "Базовый вопрос по Java №30",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 30
+    },
+    {
+      "text": "Базовый вопрос по Java №31",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 31
+    },
+    {
+      "text": "Базовый вопрос по Java №32",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 32
+    },
+    {
+      "text": "Базовый вопрос по Java №33",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 33
+    },
+    {
+      "text": "Базовый вопрос по Java №34",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 34
+    },
+    {
+      "text": "Базовый вопрос по Java №35",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 35
+    },
+    {
+      "text": "Базовый вопрос по Java №36",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 36
+    },
+    {
+      "text": "Базовый вопрос по Java №37",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 37
+    },
+    {
+      "text": "Базовый вопрос по Java №38",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 38
+    },
+    {
+      "text": "Базовый вопрос по Java №39",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 39
+    },
+    {
+      "text": "Базовый вопрос по Java №40",
+      "type": "SINGLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Правильный ответ",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Неправильный",
+          "isCorrect": false,
+          "orderIndex": 2
+        },
+        {
+          "text": "Неправильный 2",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 40
+    },
+    {
+      "text": "Примитивные типы Java",
+      "type": "MULTIPLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "int",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "double",
+          "isCorrect": true,
+          "orderIndex": 2
+        },
+        {
+          "text": "boolean",
+          "isCorrect": true,
+          "orderIndex": 3
+        },
+        {
+          "text": "String",
+          "isCorrect": false,
+          "orderIndex": 4
+        },
+        {
+          "text": "Integer",
+          "isCorrect": false,
+          "orderIndex": 5
+        }
+      ],
+      "orderIndex": 41
+    },
+    {
+      "text": "Коллекции List",
+      "type": "MULTIPLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "ArrayList",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "LinkedList",
+          "isCorrect": true,
+          "orderIndex": 2
+        },
+        {
+          "text": "HashSet",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 42
+    },
+    {
+      "text": "Интерфейсы Java",
+      "type": "MULTIPLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Runnable",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "Serializable",
+          "isCorrect": true,
+          "orderIndex": 2
+        },
+        {
+          "text": "Thread",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 43
+    },
+    {
+      "text": "Модификаторы доступа",
+      "type": "MULTIPLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "public",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "private",
+          "isCorrect": true,
+          "orderIndex": 2
+        },
+        {
+          "text": "protected",
+          "isCorrect": true,
+          "orderIndex": 3
+        },
+        {
+          "text": "static",
+          "isCorrect": false,
+          "orderIndex": 4
+        }
+      ],
+      "orderIndex": 44
+    },
+    {
+      "text": "Типы исключений",
+      "type": "MULTIPLE_CHOICE",
+      "maxScore": 1,
+      "options": [
+        {
+          "text": "Exception",
+          "isCorrect": true,
+          "orderIndex": 1
+        },
+        {
+          "text": "RuntimeException",
+          "isCorrect": true,
+          "orderIndex": 2
+        },
+        {
+          "text": "String",
+          "isCorrect": false,
+          "orderIndex": 3
+        }
+      ],
+      "orderIndex": 45
+    },
+    {
+      "text": "Что такое ООП?",
+      "type": "OPEN_ANSWER",
+      "maxScore": 1,
+      "correctOpenAnswer": "Парадигма объектно-ориентированного программирования",
+      "orderIndex": 46
+    },
+    {
+      "text": "Для чего нужен try-catch?",
+      "type": "OPEN_ANSWER",
+      "maxScore": 1,
+      "correctOpenAnswer": "Для обработки исключений",
+      "orderIndex": 47
+    },
+    {
+      "text": "Что такое null?",
+      "type": "OPEN_ANSWER",
+      "maxScore": 1,
+      "correctOpenAnswer": "Отсутствие ссылки на объект",
+      "orderIndex": 48
+    },
+    {
+      "text": "Что делает garbage collector?",
+      "type": "OPEN_ANSWER",
+      "maxScore": 1,
+      "correctOpenAnswer": "Освобождает память",
+      "orderIndex": 49
+    },
+    {
+      "text": "Чем equals отличается от ==",
+      "type": "OPEN_ANSWER",
+      "maxScore": 1,
+      "correctOpenAnswer": "equals сравнивает значения, == ссылки",
+      "orderIndex": 50
+    }
+  ]
+}
