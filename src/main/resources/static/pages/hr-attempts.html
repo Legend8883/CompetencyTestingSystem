@@ -463,6 +463,8 @@
             switch (status) {
                 case 'IN_PROGRESS': return 'status-pending';
                 case 'COMPLETED': return 'status-pending';
+                case 'EVALUATING': return 'status-pending';
+                case 'SUBMITTED': return 'status-pending';
                 case 'EVALUATED': return 'status-active';
                 default: return 'status-inactive';
             }
@@ -472,6 +474,8 @@
             const statuses = {
                 'IN_PROGRESS': 'В процессе',
                 'COMPLETED': 'На проверке',
+                'EVALUATING': 'На проверке HR',
+                'SUBMITTED': 'Отправлен на проверку',
                 'EVALUATED': 'Проверено'
             };
             return statuses[status] || status;
@@ -481,7 +485,7 @@
         async function viewAttemptDetails(attemptId) {
             try {
                 // Открываем страницу результатов
-                window.open(`test-results.html?attemptId=${attemptId}&view=hr`, '_blank');
+                window.location.href = `test-results.html?attemptId=${attemptId}&view=hr`; 
             } catch (error) {
                 alert('Ошибка: ' + error.message);
             }

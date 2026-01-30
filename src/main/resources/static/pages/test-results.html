@@ -164,6 +164,8 @@
             };
         }
 
+        let currentResults = null;
+
         // Загрузка результатов
         async function loadResults() {
             const params = getUrlParams();
@@ -187,6 +189,7 @@
                 }
 
                 const results = response.data;
+                currentResults = results;
                 renderResults(results, view);
 
             } catch (error) {
@@ -291,7 +294,7 @@
                     ${questionsHtml}
                 </div>
                 
-                ${view === 'hr' && results.status === 'COMPLETED' ? `
+                ${false ? `
                     <div style="margin-top: 2rem; padding: 1.5rem; background: var(--warning-light); border-radius: var(--radius); border: 1px solid var(--warning);">
                     <h4 style="margin-bottom: 0.5rem;">⚠️ Требуется проверка HR</h4>
                     <p style="margin-bottom: 1rem;">В этом тесте есть открытые вопросы, требующие оценки HR.</p>
@@ -385,6 +388,28 @@
             }
 
             try {
+                // 1) Сохраняем оценки за открытые вопросы (если они еще не выставлены)
+                if (currentResults && currentResults.answers) {
+                    const openToSave = currentResults.answers.filter(a =>
+                        a.questionType === 'OPEN_ANSWER' && (a.assignedScore === null || a.assignedScore === undefined)
+                    );
+
+                    for (const a of openToSave) {
+                        const input = document.getElementById(`score-${a.answerId}`);
+                        const statusDiv = document.getElementById(`score-status-${a.answerId}`);
+
+                        const score = parseInt(input?.value ?? '0', 10);
+                        if (Number.isNaN(score) || score < 0 || score > (a.questionMaxScore || 0)) {
+                            throw new Error(`Некорректная оценка для вопроса: "${a.questionText}"`);
+                        }
+
+                        if (statusDiv) statusDiv.textContent = 'Сохранение...';
+                        await apiService.evaluateAnswer(a.answerId, score);
+                        if (statusDiv) statusDiv.textContent = '✓ Сохранено';
+                    }
+                }
+
+                // 2) Завершаем проверку
                 await apiService.completeEvaluation(attemptId);
                 alert('Проверка завершена! Результаты отправлены сотруднику.');
 
@@ -407,23 +432,22 @@
                         </div>
                     </div>
                     
-                    ${view === 'hr' && !answer.assignedScore ? `
-                        <div style="margin-top: 1rem;">
+                    ${view === 'hr' && (answer.assignedScore === null || answer.assignedScore === undefined) ? `
+                        <div style="margin-top: 1rem;" class="open-eval" data-answer-id="${answer.answerId}">
                             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
                                 Оценка (0 - ${answer.questionMaxScore} баллов):
                             </label>
                             <div style="display: flex; gap: 1rem; align-items: center;">
                                 <input type="number" 
-                                       id="score-${answer.questionId}"
+                                       id="score-${answer.answerId}"
+                                       class="hr-score-input"
                                        min="0" 
                                        max="${answer.questionMaxScore}"
                                        value="0"
                                        style="flex: 1; padding: 0.5rem; border: 1px solid var(--gray-border); border-radius: var(--radius);">
                                 <span style="color: var(--gray-text);">/ ${answer.questionMaxScore}</span>
-                                <button onclick="saveOpenAnswerScore(${answer.questionId})" class="btn btn-primary btn-small">
-                                    Сохранить
-                                </button>
                             </div>
+                            <div id="score-status-${answer.answerId}" style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--gray-text);"></div>
                         </div>
                     ` : `
                         <div style="margin-top: 0.5rem;">
@@ -585,7 +609,7 @@
 
         function evaluateTest(attemptId) {
             // Перенаправляем на страницу оценки для HR
-            window.location.href = `evaluation.html?attemptId=${attemptId}`;
+            window.location.href = `hr-evaluation.html?attemptId=${attemptId}`;
         }
 
         function sendResultsToEmail(attemptId) {

@@ -244,13 +244,25 @@ class ApiService {
     }
 
     async submitAnswer(attemptId, questionId, answerData) {
-        console.log('Submitting answer:', { attemptId, questionId, answerData });
+        // Поддержка двух сигнатур:
+        // 1) submitAnswer(attemptId, questionId, answerData)
+        // 2) submitAnswer(attemptId, answerData)  (старый/страничный вызов)
+        let qId = questionId;
+        let payload = answerData;
+
+        if (questionId && typeof questionId === 'object' && answerData === undefined) {
+            payload = questionId;
+            qId = payload.questionId;
+        }
+
+        console.log('Submitting answer:', { attemptId, questionId: qId, answerData: payload });
+
         const response = await fetch(`${API_BASE_URL}/employee/attempts/${attemptId}/answers`, {
             method: 'POST',
             headers: this.getHeaders(),
             body: JSON.stringify({
-                questionId, // <-- Должен быть первым параметром
-                ...answerData
+                questionId: qId,
+                ...(payload || {})
             })
         });
 

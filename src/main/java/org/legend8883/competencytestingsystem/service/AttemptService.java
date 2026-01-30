@@ -187,7 +187,7 @@ public class AttemptService {
 
         if (hasOpenQuestionsInTest) {
             // Если в тесте ЕСТЬ открытые вопросы → SUBMITTED (отправлен на проверку)
-            attempt.setStatus(AttemptStatus.SUBMITTED);
+            attempt.setStatus(AttemptStatus.EVALUATING);
         } else {
             // Если в тесте НЕТ открытых вопросов → EVALUATED (автоматически проверен)
             attempt.setStatus(AttemptStatus.EVALUATED);
@@ -457,12 +457,8 @@ public class AttemptService {
         }
 
         Long selectedId = answer.getSelectedOptionIds().get(0);
-
-        // Используем правильный метод для поиска варианта
-        AnswerOption selectedOption = question.getOptions().stream()
-                .filter(option -> option.getId().equals(selectedId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Option not found"));
+        AnswerOption selectedOption = answerOptionRepository.findById(selectedId)
+                .orElseThrow();
 
         answer.setAutoScore(selectedOption.getIsCorrect() ? question.getMaxScore() : 0);
     }

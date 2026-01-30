@@ -118,97 +118,75 @@
 
             if (answers.length === 0) {
                 container.innerHTML = `
-            <div style="text-align: center; padding: 2rem; background: var(--gray-light); border-radius: var(--radius);">
-                <h3 style="color: var(--gray-text); margin-bottom: 1rem;">🎉 Отлично!</h3>
-                <p>Нет открытых вопросов для проверки. Все ответы уже оценены.</p>
-            </div>
-        `;
+                    <div style="text-align: center; padding: 2rem; background: var(--gray-light); border-radius: var(--radius);">
+                        <h3 style="color: var(--gray-text); margin-bottom: 1rem;">🎉 Отлично!</h3>
+                        <p>Нет открытых вопросов для проверки. Все ответы уже оценены.</p>
+                    </div>
+                `;
                 return;
             }
 
             container.innerHTML = `
-        <div style="margin-bottom: 2rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h3 style="margin: 0; color: var(--secondary-blue);">
-                    Открытые вопросы (${answers.length})
-                </h3>
-                <div style="font-size: 0.875rem; color: var(--gray-text);">
-                    Максимальный балл за каждый вопрос указан в скобках
-                </div>
-            </div>
-            
-            <div id="answers-list" style="max-height: 500px; overflow-y: auto; padding-right: 0.5rem;">
-                ${answers.map(answer => `
-                    <div class="answer-card" data-answer-id="${answer.id}" style="margin-bottom: 1.5rem; padding: 1.5rem; border: 1px solid var(--gray-border); border-radius: var(--radius); background: var(--white);">
-                        <div style="margin-bottom: 1rem;">
-                            <div style="font-weight: 600; color: var(--gray-dark); margin-bottom: 0.25rem;">
-                                Вопрос:
-                            </div>
-                            <div style="padding: 1rem; background: var(--gray-light); border-radius: var(--radius); border-left: 4px solid var(--primary-blue);">
-                                ${answer.questionText}
-                            </div>
-                        </div>
-                        
-                        <div style="margin-bottom: 1rem;">
-                            <div style="font-weight: 600; color: var(--gray-dark); margin-bottom: 0.25rem;">
-                                Ответ сотрудника:
-                            </div>
-                            <div style="padding: 1rem; background: var(--primary-verylight); border-radius: var(--radius); white-space: pre-wrap; font-family: monospace; font-size: 0.875rem;">
-                                ${answer.openAnswerText || 'Ответ отсутствует'}
-                            </div>
-                        </div>
-                        
-                        <div style="margin-top: 1rem;">
-                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
-                                Оценка (0 - ${answer.maxScore} баллов):
-                            </label>
-                            <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                <input type="number" 
-                                       id="score-${answer.id}"
-                                       class="score-input" 
-                                       min="0" 
-                                       max="${answer.maxScore}"
-                                       value="${answer.assignedScore || 0}"
-                                       style="flex: 1; padding: 0.5rem; border: 1px solid var(--gray-border); border-radius: var(--radius);"
-                                       onchange="autoSaveScore(${answer.id})">
-                                <span style="color: var(--gray-text);">/ ${answer.maxScore}</span>
-                                <span id="status-${answer.id}" style="font-size: 0.875rem; margin-left: 0.5rem;"></span>
-                            </div>
+                <div style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin: 0; color: var(--secondary-blue);">
+                            Открытые вопросы (${answers.length})
+                        </h3>
+                        <div style="font-size: 0.875rem; color: var(--gray-text);">
+                            Максимальный балл за каждый вопрос указан в скобках
                         </div>
                     </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-        }
-
-        // Автосохранение при изменении оценки
-        async function autoSaveScore(answerId) {
-            const scoreInput = document.getElementById(`score-${answerId}`);
-            const statusDiv = document.getElementById(`status-${answerId}`);
-
-            const score = parseInt(scoreInput.value);
-            const maxScore = parseInt(scoreInput.max);
-
-            if (score < 0 || score > maxScore) {
-                statusDiv.innerHTML = '<span style="color: var(--error);">Оценка должна быть от 0 до ' + maxScore + '</span>';
-                return;
-            }
-
-            try {
-                statusDiv.innerHTML = '<span style="color: var(--gray-text);">Сохранение...</span>';
-                await apiService.evaluateAnswer(answerId, score);
-
-                statusDiv.innerHTML = '<span style="color: var(--success);">✓ Сохранено</span>';
-
-                // Убираем сообщение через 2 секунды
-                setTimeout(() => {
-                    statusDiv.innerHTML = '';
-                }, 2000);
-
-            } catch (error) {
-                statusDiv.innerHTML = '<span style="color: var(--error);">Ошибка: ' + error.message + '</span>';
-            }
+                    
+                    <div id="answers-list" style="max-height: 500px; overflow-y: auto; padding-right: 0.5rem;">
+                        ${answers.map(answer => `
+                            <div class="answer-card" data-answer-id="${answer.id}" style="margin-bottom: 1.5rem; padding: 1.5rem; border: 1px solid var(--gray-border); border-radius: var(--radius); background: var(--white);">
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="font-weight: 600; color: var(--gray-dark); margin-bottom: 0.25rem;">
+                                        Вопрос:
+                                    </div>
+                                    <div style="padding: 1rem; background: var(--gray-light); border-radius: var(--radius); border-left: 4px solid var(--primary-blue);">
+                                        ${answer.questionText}
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="font-weight: 600; color: var(--gray-dark); margin-bottom: 0.25rem;">
+                                        Ответ сотрудника:
+                                    </div>
+                                    <div style="padding: 1rem; background: var(--primary-verylight); border-radius: var(--radius); white-space: pre-wrap; font-family: monospace; font-size: 0.875rem;">
+                                        ${answer.openAnswerText || 'Ответ отсутствует'}
+                                    </div>
+                                </div>
+                                
+                                <div style="display: flex; gap: 1rem; align-items: center;">
+                                    <div style="flex: 1;">
+                                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                                            Оценка (0 - ${answer.maxScore} баллов):
+                                        </label>
+                                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                            <input type="number" 
+                                                   class="score-input" 
+                                                   min="0" 
+                                                   max="${answer.maxScore}"
+                                                   value="${answer.assignedScore || 0}"
+                                                   style="flex: 1; padding: 0.5rem; border: 1px solid var(--gray-border); border-radius: var(--radius);">
+                                            <span style="color: var(--gray-text);">/ ${answer.maxScore}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <button onclick="saveScore(${answer.id})" class="btn btn-primary">
+                                            Сохранить оценку
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div id="status-${answer.id}" style="margin-top: 0.5rem; font-size: 0.875rem;"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
         }
 
         async function saveScore(answerId) {
@@ -324,32 +302,14 @@
         }
 
         async function completeEvaluation(attemptId) {
-            // Проверить, все ли открытые вопросы оценены
-            const scoreInputs = document.querySelectorAll('.score-input');
-            let allEvaluated = true;
-
-            for (const input of scoreInputs) {
-                const score = parseInt(input.value);
-                const maxScore = parseInt(input.max);
-
-                if (isNaN(score) || score < 0 || score > maxScore) {
-                    allEvaluated = false;
-                    alert('Пожалуйста, проверьте все оценки. Некоторые имеют некорректные значения.');
-                    return;
-                }
-            }
-
-            if (!confirm('Завершить проверку этой попытки?\nПосле завершения изменить оценки будет нельзя.')) {
+            if (!confirm('Завершить проверку этой попытки? После завершения оценки нельзя будет изменить.')) {
                 return;
             }
 
             try {
                 await apiService.completeEvaluation(attemptId);
                 alert('Проверка завершена! Результаты отправлены сотруднику.');
-
-                // Обновляем данные
                 loadEvaluationData();
-
             } catch (error) {
                 alert('Ошибка завершения проверки: ' + error.message);
             }

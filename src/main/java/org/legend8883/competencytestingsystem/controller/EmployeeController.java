@@ -215,6 +215,7 @@ public class EmployeeController {
     private AnswerResultResponse createAnswerResultResponse(Answer answer) {
         AnswerResultResponse response = new AnswerResultResponse();
 
+        response.setAnswerId(answer.getId());
         response.setQuestionId(answer.getQuestion().getId());
         response.setQuestionText(answer.getQuestion().getText());
         response.setQuestionType(answer.getQuestion().getType().name());
@@ -223,31 +224,27 @@ public class EmployeeController {
         if (answer.getQuestion().getType() == QuestionType.OPEN_ANSWER) {
             response.setUserAnswer(answer.getOpenAnswerText());
         } else {
-            // Для вопросов с выбором
-            List<AnswerOptionResponse> selectedOptions = new ArrayList<>();
+            // Для вопросов с выбором возвращаем все варианты + selected
+            List<AnswerOptionWithSelectionResponse> options = new ArrayList<>();
 
-            if (answer.getSelectedOptionIds() != null) {
-                for (Long optionId : answer.getSelectedOptionIds()) {
-                    AnswerOption option = answer.getQuestion().getOptions().stream()
-                            .filter(o -> o.getId().equals(optionId))
-                            .findFirst()
-                            .orElse(null);
+            for (AnswerOption option : answer.getQuestion().getOptions()) {
+                AnswerOptionWithSelectionResponse dto = new AnswerOptionWithSelectionResponse();
+                dto.setId(option.getId());
+                dto.setText(option.getText());
+                dto.setIsCorrect(option.getIsCorrect());
+                dto.setOrderIndex(option.getOrderIndex());
 
-                    if (option != null) {
-                        AnswerOptionResponse optionResponse = new AnswerOptionResponse();
-                        optionResponse.setId(option.getId());
-                        optionResponse.setText(option.getText());
-                        optionResponse.setIsCorrect(option.getIsCorrect());
-                        optionResponse.setOrderIndex(option.getOrderIndex());
-                        selectedOptions.add(optionResponse);
-                    }
-                }
+                boolean selected = answer.getSelectedOptionIds() != null &&
+                        answer.getSelectedOptionIds().contains(option.getId());
+                dto.setSelected(selected);
+
+                options.add(dto);
             }
 
-            response.setSelectedOptions(selectedOptions);
+            response.setSelectedOptions(options);
         }
 
-        // Устанавливаем баллы
+        // Баллы
         if (answer.getAssignedScore() != null) {
             response.setAssignedScore(answer.getAssignedScore());
             response.setFinalScore(answer.getAssignedScore());
@@ -257,7 +254,6 @@ public class EmployeeController {
         }
 
         response.setIsCorrect(isAnswerCorrect(answer));
-
         return response;
     }
 

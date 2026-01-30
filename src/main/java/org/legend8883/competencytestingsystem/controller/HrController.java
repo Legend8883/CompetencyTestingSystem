@@ -264,6 +264,7 @@ public class HrController {
     private Map<String, Object> mapAnswerToFullMap(Answer answer) {
         Map<String, Object> map = new HashMap<>();
 
+        map.put("answerId", answer.getId());
         map.put("questionId", answer.getQuestion().getId());
         map.put("questionText", answer.getQuestion().getText());
         map.put("questionType", answer.getQuestion().getType().name());

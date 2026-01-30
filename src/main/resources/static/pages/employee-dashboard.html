@@ -193,7 +193,7 @@
                 updateTestsTable(availableTests);
 
                 // Обновляем таблицу истории
-                updateHistoryTable(evaluatedAttempts);
+                updateHistoryTable(myAttempts);
 
             } catch (error) {
                 console.error('Ошибка загрузки дашборда:', error);
@@ -272,22 +272,21 @@
                 let buttonClass = '';
                 let buttonAction = '';
 
-                // Для статуса "На проверке" (COMPLETED или EVALUATING)
-                if (attempt.status === 'COMPLETED' || attempt.status === 'EVALUATING') {
-                    buttonText = 'Просмотреть ответы';
+                // ЛОГИКА КНОПОК:
+                if (attempt.status === 'IN_PROGRESS') {
+                    buttonText = 'Продолжить';
+                    buttonClass = 'btn-primary';
+                    buttonAction = `continueTest(${attempt.id})`;
+                } else if (attempt.status === 'COMPLETED' || attempt.status === 'EVALUATING' || attempt.status === 'SUBMITTED') {
+                    // На проверке - желтая кнопка
+                    buttonText = 'Просмотреть';
                     buttonClass = 'btn-warning';
-                    // Используем текущую вкладку, а не новую
                     buttonAction = `viewAttemptDetails(${attempt.id})`;
                 } else if (attempt.status === 'EVALUATED') {
                     // Проверено - зеленая кнопка
                     buttonText = 'Результаты';
                     buttonClass = 'btn-success';
-                    // Используем текущую вкладку
                     buttonAction = `viewResults(${attempt.id})`;
-                } else if (attempt.status === 'IN_PROGRESS') {
-                    buttonText = 'Продолжить';
-                    buttonClass = 'btn-primary';
-                    buttonAction = `continueTest(${attempt.testId})`;
                 } else {
                     buttonText = 'Подробнее';
                     buttonClass = 'btn-outline';
@@ -302,8 +301,7 @@
                     } else {
                         resultHtml = '<span style="color: var(--error);">✗ Не прошел</span>';
                     }
-                } else if (attempt.status === 'COMPLETED' || attempt.status === 'EVALUATING') {
-                    statusText = 'На проверке HR'; // Явно указываем статус
+                } else if (attempt.status === 'COMPLETED' || attempt.status === 'EVALUATING' || attempt.status === 'SUBMITTED') {
                     resultHtml = '<span style="color: var(--warning);">⏳ Ожидает проверки HR</span>';
                 } else {
                     resultHtml = '<span style="color: var(--gray-text);">—</span>';
@@ -335,9 +333,10 @@
         }
 
         // Функция продолжения теста
-        function continueTest(testId) {
-            // Начинаем тест заново или продолжаем существующий
-            window.location.href = `take-test.html?id=${testId}`;
+        function continueTest(attemptId) {
+            // Продолжаем текущую попытку
+            sessionStorage.setItem('currentAttempt', attemptId);
+            window.location.href = `take-test.html?attemptId=${attemptId}`;
         }
 
         // Модальное окно с результатами
@@ -445,8 +444,10 @@
         function getAttemptStatusClass(status) {
             switch (status) {
                 case 'EVALUATED': return 'status-active';
+                case 'IN_PROGRESS': return 'status-pending';
+                case 'SUBMITTED': return 'status-pending';
                 case 'EVALUATING': return 'status-pending';
-                case 'COMPLETED': return 'status-inactive';
+                case 'COMPLETED': return 'status-pending';
                 default: return 'status-inactive';
             }
         }
