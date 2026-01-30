@@ -300,7 +300,7 @@
                             <button onclick="completeTest()" class="btn btn-primary" id="complete-btn" style="display: none;">
                                 Завершить тест
                             </button>
-                        </div>
+                            </div>
 
                         <!-- Прогресс-бар -->
                         <div style="margin-bottom: 20px;">
@@ -505,11 +505,7 @@
                             <div class="option" onclick="selectOption(this, ${optionId}, '${question.type}', ${questionId})">
                                 <input type="${inputType}" 
                                        name="${inputName}" 
-                                       value="${optionId}"
-                                       style="display: none;">
-                                <div style="width: 24px; height: 24px; border: 2px solid #cbd5e1; border-radius: 50%; 
-                                            display: flex; align-items: center; justify-content: center;">
-                                </div>
+                                       value="${optionId}">
                                 <div style="flex: 1; font-size: 16px;">
                                     ${option.text || `Вариант ${idx + 1}`}
                                 </div>

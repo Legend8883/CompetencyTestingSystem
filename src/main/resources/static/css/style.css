@@ -848,3 +848,18 @@ tbody tr:hover {
     background-color: #dbeafe !important;
     border-color: #2563eb !important;
 }
+
+.option input[type="radio"],
+.option input[type="checkbox"] {
+    appearance: auto;
+    -webkit-appearance: auto;
+    -moz-appearance: auto;
+
+    width: 18px;
+    height: 18px;
+    margin: 0 10px 0 0;
+    padding: 0;
+
+    cursor: pointer;
+    flex-shrink: 0;
+}

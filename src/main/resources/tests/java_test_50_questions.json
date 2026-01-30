@@ -230,22 +230,22 @@
       "orderIndex": 10
     },
     {
-      "text": "Базовый вопрос по Java №11",
+      "text": "Что означает ключевое слово 'final' для класса?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Класс нельзя наследовать",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Класс нельзя изменять",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Класс можно наследовать только один раз",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -253,22 +253,22 @@
       "orderIndex": 11
     },
     {
-      "text": "Базовый вопрос по Java №12",
+      "text": "Какой тип данных используется для хранения одного символа?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "char",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "String",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Character",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -276,22 +276,22 @@
       "orderIndex": 12
     },
     {
-      "text": "Базовый вопрос по Java №13",
+      "text": "Что такое конструктор класса?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Метод для инициализации объекта",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Метод для уничтожения объекта",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Метод для копирования объекта",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -299,22 +299,22 @@
       "orderIndex": 13
     },
     {
-      "text": "Базовый вопрос по Java №14",
+      "text": "Какой интерфейс используется для сортировки объектов?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Comparable",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Serializable",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Cloneable",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -322,22 +322,22 @@
       "orderIndex": 14
     },
     {
-      "text": "Базовый вопрос по Java №15",
+      "text": "Что такое перегрузка методов (overloading)?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Методы с одинаковым именем, но разными параметрами",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Переопределение методов родительского класса",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Изменение реализации метода",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -345,22 +345,22 @@
       "orderIndex": 15
     },
     {
-      "text": "Базовый вопрос по Java №16",
+      "text": "Какой модификатор делает метод доступным без создания объекта класса?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "static",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "final",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "abstract",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -368,22 +368,22 @@
       "orderIndex": 16
     },
     {
-      "text": "Базовый вопрос по Java №17",
+      "text": "Что такое инкапсуляция?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Сокрытие внутренней реализации и защита данных",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Наследование свойств родительского класса",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Использование одного имени для разных действий",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -391,22 +391,22 @@
       "orderIndex": 17
     },
     {
-      "text": "Базовый вопрос по Java №18",
+      "text": "Какой цикл гарантирует выполнение хотя бы один раз?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "do-while",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "while",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "for",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -414,22 +414,22 @@
       "orderIndex": 18
     },
     {
-      "text": "Базовый вопрос по Java №19",
+      "text": "Что такое аннотация @Override?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Указывает, что метод переопределяет метод родительского класса",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Указывает, что метод является устаревшим",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Указывает, что метод является статическим",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -437,22 +437,22 @@
       "orderIndex": 19
     },
     {
-      "text": "Базовый вопрос по Java №20",
+      "text": "Какой оператор используется для создания объекта массива?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "new",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "create",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "array",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -460,22 +460,22 @@
       "orderIndex": 20
     },
     {
-      "text": "Базовый вопрос по Java №21",
+      "text": "Что такое полиморфизм?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Возможность объектов с одинаковым интерфейсом иметь разную реализацию",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Сокрытие реализации деталей",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Повторное использование кода",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -483,22 +483,22 @@
       "orderIndex": 21
     },
     {
-      "text": "Базовый вопрос по Java №22",
+      "text": "Какой тип исключения проверяется компилятором?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Checked Exception",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Unchecked Exception",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Error",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -506,22 +506,22 @@
       "orderIndex": 22
     },
     {
-      "text": "Базовый вопрос по Java №23",
+      "text": "Что такое интерфейс в Java?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Контракт, который класс должен реализовать",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Родительский класс",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Шаблон для создания объектов",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -529,22 +529,22 @@
       "orderIndex": 23
     },
     {
-      "text": "Базовый вопрос по Java №24",
+      "text": "Какой оператор используется для сравнения значений примитивных типов?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "==",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "equals()",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "compareTo()",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -552,22 +552,22 @@
       "orderIndex": 24
     },
     {
-      "text": "Базовый вопрос по Java №25",
+      "text": "Что такое JDK?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Комплект разработчика Java",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Среда выполнения Java",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Виртуальная машина Java",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -575,22 +575,22 @@
       "orderIndex": 25
     },
     {
-      "text": "Базовый вопрос по Java №26",
+      "text": "Какой класс используется для работы с датами и временем (Java 8+)?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "LocalDateTime",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Date",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Calendar",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -598,22 +598,22 @@
       "orderIndex": 26
     },
     {
-      "text": "Базовый вопрос по Java №27",
+      "text": "Что такое лямбда-выражение?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Анонимная функция",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Именованная функция",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Статический метод",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -621,22 +621,22 @@
       "orderIndex": 27
     },
     {
-      "text": "Базовый вопрос по Java №28",
+      "text": "Какой тип данных занимает 8 байт?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "long",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "int",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "double",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -644,22 +644,22 @@
       "orderIndex": 28
     },
     {
-      "text": "Базовый вопрос по Java №29",
+      "text": "Что такое поток (Thread) в Java?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Легковесный процесс выполнения",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Поток данных",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Соединение с базой данных",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -667,22 +667,22 @@
       "orderIndex": 29
     },
     {
-      "text": "Базовый вопрос по Java №30",
+      "text": "Какой оператор используется для выхода из цикла?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "break",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "continue",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "return",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -690,22 +690,22 @@
       "orderIndex": 30
     },
     {
-      "text": "Базовый вопрос по Java №31",
+      "text": "Что такое immutable объект?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Объект, состояние которого нельзя изменить после создания",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Объект, который можно изменять",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Объект, который нельзя создать",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -713,22 +713,22 @@
       "orderIndex": 31
     },
     {
-      "text": "Базовый вопрос по Java №32",
+      "text": "Какой класс является родительским для всех классов в Java?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Object",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Class",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Main",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -736,22 +736,22 @@
       "orderIndex": 32
     },
     {
-      "text": "Базовый вопрос по Java №33",
+      "text": "Что такое пакет (package) в Java?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Группа связанных классов и интерфейсов",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Архивный файл",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Исполняемый файл",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -759,22 +759,22 @@
       "orderIndex": 33
     },
     {
-      "text": "Базовый вопрос по Java №34",
+      "text": "Какой тип данных используется для логических значений?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "boolean",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "bool",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Boolean",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -782,22 +782,22 @@
       "orderIndex": 34
     },
     {
-      "text": "Базовый вопрос по Java №35",
+      "text": "Что такое метод по умолчанию (default method) в интерфейсе?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Метод с реализацией в интерфейсе",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Метод без реализации",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Статический метод",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -805,22 +805,22 @@
       "orderIndex": 35
     },
     {
-      "text": "Базовый вопрос по Java №36",
+      "text": "Какой оператор используется для условного выполнения кода?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "if",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "switch",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "for",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -828,22 +828,22 @@
       "orderIndex": 36
     },
     {
-      "text": "Базовый вопрос по Java №37",
+      "text": "Что такое JIT компиляция?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Компиляция во время выполнения программы",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Компиляция перед запуском программы",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Интерпретация кода",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -851,22 +851,22 @@
       "orderIndex": 37
     },
     {
-      "text": "Базовый вопрос по Java №38",
+      "text": "Какой модификатор используется для объявления константы?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "final",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "static",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "const",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -874,22 +874,22 @@
       "orderIndex": 38
     },
     {
-      "text": "Базовый вопрос по Java №39",
+      "text": "Что такое перечисление (enum) в Java?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Тип данных, представляющий набор именованных констант",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Список элементов",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "Массив констант",
           "isCorrect": false,
           "orderIndex": 3
         }
@@ -897,22 +897,22 @@
       "orderIndex": 39
     },
     {
-      "text": "Базовый вопрос по Java №40",
+      "text": "Какой класс используется для чтения данных с консоли?",
       "type": "SINGLE_CHOICE",
       "maxScore": 1,
       "options": [
         {
-          "text": "Правильный ответ",
+          "text": "Scanner",
           "isCorrect": true,
           "orderIndex": 1
         },
         {
-          "text": "Неправильный",
+          "text": "Reader",
           "isCorrect": false,
           "orderIndex": 2
         },
         {
-          "text": "Неправильный 2",
+          "text": "InputStream",
           "isCorrect": false,
           "orderIndex": 3
         }
