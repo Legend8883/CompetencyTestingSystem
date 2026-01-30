@@ -3,6 +3,7 @@ package org.legend8883.competencytestingsystem.service;
 import lombok.RequiredArgsConstructor;
 import org.legend8883.competencytestingsystem.dto.request.AssignTestRequest;
 import org.legend8883.competencytestingsystem.entity.*;
+import org.legend8883.competencytestingsystem.repository.AttemptRepository;
 import org.legend8883.competencytestingsystem.repository.TestAssignmentRepository;
 import org.legend8883.competencytestingsystem.repository.TestRepository;
 import org.legend8883.competencytestingsystem.repository.UserRepository;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +21,7 @@ public class TestAssignmentService {
     private final TestAssignmentRepository testAssignmentRepository;
     private final TestRepository testRepository;
     private final UserRepository userRepository;
+    private final AttemptRepository attemptRepository;
 
     // Назначить тест сотрудникам (HR функция)
     @Transactional
@@ -46,12 +49,29 @@ public class TestAssignmentService {
                 throw new RuntimeException("User " + user.getEmail() + " is not an employee");
             }
 
-            // Проверить не назначен ли уже тест
-            if (testAssignmentRepository.findByUserAndTest(user, test).isPresent()) {
-                continue; // Уже назначен, пропускаем
+            // ПРОВЕРКА: не назначен ли уже тест и не начал ли сотрудник его проходить
+            Optional<TestAssignment> existingAssignment = testAssignmentRepository
+                    .findByUserAndTest(user, test);
+
+            if (existingAssignment.isPresent()) {
+                // Проверяем, не начал ли уже сотрудник тест
+                Optional<Attempt> existingAttempt = attemptRepository
+                        .findByUserAndTest(user, test);
+
+                if (existingAttempt.isPresent()) {
+                    throw new RuntimeException("Сотрудник " + user.getEmail() +
+                            " уже начал проходить этот тест");
+                }
+
+                // Если назначение существует, но тест не начат, обновляем его
+                TestAssignment assignment = existingAssignment.get();
+                assignment.setDeadline(request.getDeadline());
+                assignment.setIsActive(true);
+                testAssignmentRepository.save(assignment);
+                continue;
             }
 
-            // Создать назначение
+            // Создать новое назначение
             TestAssignment assignment = new TestAssignment();
             assignment.setTest(test);
             assignment.setUser(user);

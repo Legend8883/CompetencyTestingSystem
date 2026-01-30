@@ -240,45 +240,206 @@
             }
         }
 
+        async function viewResults(attemptId) {
+            // Открываем в ЭТОЙ же вкладке
+            window.location.href = `test-results.html?attemptId=${attemptId}&view=employee`;
+        }
+
+        async function viewAttemptDetails(attemptId) {
+            // Для попыток на проверке тоже показываем в этой же вкладке
+            window.location.href = `test-results.html?attemptId=${attemptId}&view=employee`;
+        }
+
         function updateHistoryTable(attempts) {
             const tbody = document.getElementById('historyTable');
 
             if (attempts.length === 0) {
                 tbody.innerHTML = `
             <tr>
-                <td colspan="5" style="text-align: center; padding: 2rem;">
+                <td colspan="6" style="text-align: center; padding: 2rem;">
                     История тестирований пуста
                 </td>
             </tr>
         `;
-            } else {
-                tbody.innerHTML = attempts.map(attempt => `
+                return;
+            }
+
+            tbody.innerHTML = attempts.map(attempt => {
+                // Определяем статус для отображения
+                let statusText = getAttemptStatusLabel(attempt.status);
+                let statusClass = getAttemptStatusClass(attempt.status);
+                let buttonText = '';
+                let buttonClass = '';
+                let buttonAction = '';
+
+                // Для статуса "На проверке" (COMPLETED или EVALUATING)
+                if (attempt.status === 'COMPLETED' || attempt.status === 'EVALUATING') {
+                    buttonText = 'Просмотреть ответы';
+                    buttonClass = 'btn-warning';
+                    // Используем текущую вкладку, а не новую
+                    buttonAction = `viewAttemptDetails(${attempt.id})`;
+                } else if (attempt.status === 'EVALUATED') {
+                    // Проверено - зеленая кнопка
+                    buttonText = 'Результаты';
+                    buttonClass = 'btn-success';
+                    // Используем текущую вкладку
+                    buttonAction = `viewResults(${attempt.id})`;
+                } else if (attempt.status === 'IN_PROGRESS') {
+                    buttonText = 'Продолжить';
+                    buttonClass = 'btn-primary';
+                    buttonAction = `continueTest(${attempt.testId})`;
+                } else {
+                    buttonText = 'Подробнее';
+                    buttonClass = 'btn-outline';
+                    buttonAction = `viewAttemptDetails(${attempt.id})`;
+                }
+
+                // Определяем результат
+                let resultHtml = '';
+                if (attempt.status === 'EVALUATED') {
+                    if (attempt.passed) {
+                        resultHtml = '<span style="color: var(--success);">✓ Прошел</span>';
+                    } else {
+                        resultHtml = '<span style="color: var(--error);">✗ Не прошел</span>';
+                    }
+                } else if (attempt.status === 'COMPLETED' || attempt.status === 'EVALUATING') {
+                    statusText = 'На проверке HR'; // Явно указываем статус
+                    resultHtml = '<span style="color: var(--warning);">⏳ Ожидает проверки HR</span>';
+                } else {
+                    resultHtml = '<span style="color: var(--gray-text);">—</span>';
+                }
+
+                return `
             <tr>
                 <td>${attempt.testTitle}</td>
                 <td>${formatDate(attempt.completedAt || attempt.startedAt)}</td>
                 <td>
                     ${attempt.score !== null && attempt.score !== undefined ?
                         `${attempt.score} баллов` :
-                        'Ожидает оценки'}
+                        '—'}
                 </td>
                 <td>
-                    <span class="status ${getAttemptStatusClass(attempt.status)}">
-                        ${getAttemptStatusLabel(attempt.status)}
+                    <span class="status ${statusClass}">
+                        ${statusText}
                     </span>
                 </td>
+                <td>${resultHtml}</td>
                 <td>
-                    ${attempt.status === 'EVALUATED' ? `
-                        ${attempt.passed ?
-                            '<span style="color: var(--success);">✓ Прошел</span>' :
-                            '<span style="color: var(--error);">✗ Не прошел</span>'}
-                    ` : attempt.status === 'EVALUATING' ?
-                        '<span style="color: var(--warning);">На проверке</span>' :
-                        '<span style="color: var(--gray-text);">Ожидает</span>'
-                    }
+                    <button class="btn ${buttonClass} btn-small" onclick="${buttonAction}">
+                        ${buttonText}
+                    </button>
                 </td>
             </tr>
+        `;
+            }).join('');
+        }
+
+        // Функция продолжения теста
+        function continueTest(testId) {
+            // Начинаем тест заново или продолжаем существующий
+            window.location.href = `take-test.html?id=${testId}`;
+        }
+
+        // Модальное окно с результатами
+        function showResultsModal(results) {
+            let questionsHtml = '';
+
+            if (results.questions && results.questions.length > 0) {
+                questionsHtml = results.questions.map((q, index) => `
+            <div class="question-result ${q.isCorrect ? 'correct-answer' : 'incorrect-answer'}">
+                <h4>Вопрос ${index + 1}: ${q.questionText}</h4>
+                
+                ${q.questionType === 'OPEN_ANSWER' ? `
+                    <p><strong>Ваш ответ:</strong> ${q.userAnswer || 'Нет ответа'}</p>
+                    <p><strong>Оценка:</strong> ${q.assignedScore || q.autoScore} / ${q.questionMaxScore}</p>
+                ` : `
+                    <p><strong>Ваши варианты:</strong></p>
+                    <div class="options-list">
+                        ${q.selectedOptions.map(option => `
+                            <div class="option-result ${option.isCorrect ? 'option-correct' : ''} 
+                                 ${option.selected ? 'option-selected' : ''}">
+                                ${option.text}
+                                ${option.isCorrect ? ' ✓' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <p><strong>Баллы:</strong> ${q.finalScore} / ${q.questionMaxScore}</p>
+                `}
+                
+                <p><strong>Результат:</strong> ${q.isCorrect ? '✓ Правильно' : '✗ Неправильно'}</p>
+            </div>
         `).join('');
             }
+
+            Utils.createModal(`Результаты теста: ${results.testTitle}`, `
+        <div class="test-summary">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <div>
+                    <p><strong>Общий балл:</strong> ${results.score} / ${results.maxPossibleScore}</p>
+                    <p><strong>Проходной балл:</strong> ${results.passingScore}</p>
+                    <p><strong>Результат:</strong> 
+                        <span style="color: ${results.passed ? 'green' : 'red'}; font-weight: bold;">
+                            ${results.passed ? 'ТЕСТ ПРОЙДЕН' : 'ТЕСТ НЕ ПРОЙДЕН'}
+                        </span>
+                    </p>
+                </div>
+                <div>
+                    <p><strong>Дата завершения:</strong> ${formatDate(results.completedAt)}</p>
+                    <p><strong>Правильных ответов:</strong> ${results.correctAnswersCount} / ${results.totalQuestions}</p>
+                </div>
+            </div>
+        </div>
+        
+        <h3 style="margin-top: 20px;">Детали ответов:</h3>
+        <div style="max-height: 400px; overflow-y: auto;">
+            ${questionsHtml || '<p>Нет данных по вопросам</p>'}
+        </div>
+    `, { width: '800px' });
+        }
+
+        // Модальное окно с деталями попытки (для статуса "На проверке")
+        function showAttemptDetailsModal(attemptDetails) {
+            let answersHtml = '';
+
+            if (attemptDetails.answers && attemptDetails.answers.length > 0) {
+                answersHtml = attemptDetails.answers.map((answer, index) => `
+            <div class="answer-detail">
+                <h4>Вопрос ${index + 1}: ${answer.questionText}</h4>
+                
+                ${answer.questionType === 'OPEN_ANSWER' ? `
+                    <p><strong>Ваш ответ:</strong></p>
+                    <div style="background: #f5f5f5; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                        ${answer.openAnswerText || 'Нет ответа'}
+                    </div>
+                    <p><strong>Статус:</strong> Ожидает оценки HR</p>
+                ` : `
+                    <p><strong>Ваши варианты:</strong></p>
+                    <div class="options-list">
+                        ${answer.selectedOptions.map(option => `
+                            <div class="option-result ${option.selected ? 'option-selected' : ''}">
+                                ${option.text}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <p><strong>Авто-оценка:</strong> ${answer.autoScore} / ${answer.maxScore}</p>
+                `}
+            </div>
+        `).join('');
+            }
+
+            Utils.createModal(`Попытка теста: ${attemptDetails.testTitle}`, `
+        <div class="attempt-info">
+            <p><strong>Статус:</strong> <span class="status status-pending">На проверке HR</span></p>
+            <p><strong>Дата завершения:</strong> ${formatDate(attemptDetails.completedAt)}</p>
+            <p><strong>Авто-оценка:</strong> ${attemptDetails.autoScore || 0} баллов</p>
+            <p><em>Тест отправлен на проверку HR. Вы не можете изменить ответы.</em></p>
+        </div>
+        
+        <h3 style="margin-top: 20px;">Ваши ответы:</h3>
+        <div style="max-height: 400px; overflow-y: auto;">
+            ${answersHtml || '<p>Нет данных по ответам</p>'}
+        </div>
+    `, { width: '800px' });
         }
 
         function getAttemptStatusClass(status) {
@@ -293,9 +454,10 @@
         function getAttemptStatusLabel(status) {
             const statuses = {
                 'IN_PROGRESS': 'В процессе',
-                'COMPLETED': 'Завершен',
-                'EVALUATING': 'На проверке',
-                'EVALUATED': 'Проверен'
+                'COMPLETED': 'На проверке',  // ВАЖНО: COMPLETED = На проверке
+                'EVALUATING': 'На проверке HR',
+                'EVALUATED': 'Проверено',
+                'SUBMITTED': 'Отправлен'
             };
             return statuses[status] || status;
         }

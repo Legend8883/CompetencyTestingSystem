@@ -1,10 +1,15 @@
 /* ===== БАЗОВЫЕ СТИЛИ ===== */
 :root {
-    --primary-blue: #2563eb;      /* Потемнее синий */
-    --primary-light: #60a5fa;     /* Немного темнее светлый */
-    --primary-verylight: #dbeafe; /* Фоновый синий */
-    --secondary-blue: #1e40af;    /* Темнее для текста */
-    --accent: #f59e0b;            /* Акцентный цвет */
+    --primary-blue: #2563eb;
+    /* Потемнее синий */
+    --primary-light: #60a5fa;
+    /* Немного темнее светлый */
+    --primary-verylight: #dbeafe;
+    /* Фоновый синий */
+    --secondary-blue: #1e40af;
+    /* Темнее для текста */
+    --accent: #f59e0b;
+    /* Акцентный цвет */
     --white: #ffffff;
     --gray-light: #f8fafc;
     --gray-border: #e2e8f0;
@@ -588,49 +593,50 @@ tbody tr:hover {
     .container {
         padding: 0 16px;
     }
-    
+
     h1 {
         font-size: 2rem;
     }
-    
+
     .navbar {
         flex-direction: column;
         gap: 1rem;
         text-align: center;
     }
-    
+
     .hero {
         padding: 2rem 0;
     }
-    
+
     .features {
         grid-template-columns: 1fr;
     }
-    
+
     .cta-buttons {
         flex-direction: column;
     }
-    
+
     .auth-card {
         padding: 2rem;
     }
-    
+
     .dashboard-header {
         flex-direction: column;
         gap: 1rem;
         text-align: center;
     }
-    
+
     .test-header {
         flex-direction: column;
         gap: 1rem;
         text-align: center;
     }
-    
+
     .test-controls {
         flex-direction: column;
     }
 }
+
 /* Модальные окна */
 .modal {
     display: none;
@@ -796,4 +802,49 @@ tbody tr:hover {
 .option-item.correct .option-number {
     background: #10b981;
     color: white;
+}
+
+.btn-warning {
+    background-color: var(--warning);
+    border-color: var(--warning);
+    color: white;
+}
+
+.btn-warning:hover {
+    background-color: #d97706;
+    border-color: #d97706;
+}
+
+.btn-success {
+    background-color: var(--success);
+    border-color: var(--success);
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #059669;
+    border-color: #059669;
+}
+
+/* Стили для отображения ответов */
+.correct-answer {
+    background-color: #d1fae5;
+    border-color: #10b981;
+    border-left: 4px solid #10b981;
+}
+
+.incorrect-answer {
+    background-color: #fee2e2;
+    border-color: #ef4444;
+    border-left: 4px solid #ef4444;
+}
+
+.option-correct {
+    background-color: #d1fae5 !important;
+    border-color: #10b981 !important;
+}
+
+.option-selected {
+    background-color: #dbeafe !important;
+    border-color: #2563eb !important;
 }

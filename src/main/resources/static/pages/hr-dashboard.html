@@ -57,16 +57,22 @@
                     <p>Добавьте новый тест с вопросами</p>
                 </a>
 
-                <a href="evaluation.html" class="action-card">
+                <!-- <a href="evaluation.html" class="action-card">
                     <div class="action-icon">📋</div>
                     <h3>Проверка тестов</h3>
                     <p>Оцените открытые ответы сотрудников</p>
-                </a>
+                </a> -->
 
                 <a href="#" class="action-card" onclick="showAssignModal()">
                     <div class="action-icon">🎯</div>
                     <h3>Назначить тест</h3>
                     <p>Назначьте тест сотрудникам</p>
+                </a>
+
+                <a href="hr-attempts.html" class="action-card">
+                    <div class="action-icon">📊</div>
+                    <h3>Все попытки</h3>
+                    <p>Просмотр и оценка всех попыток сотрудников</p>
                 </a>
             </div>
 
@@ -250,8 +256,8 @@
                         <label>Выберите тест:</label>
                         <select id="assignTestId" class="form-control">
                             ${tests.filter(t => t.isActive).map(t =>
-                                `<option value="${t.id}">${t.title} (${t.questionCount} вопросов)</option>`
-                            ).join('')}
+                    `<option value="${t.id}">${t.title} (${t.questionCount} вопросов)</option>`
+                ).join('')}
                         </select>
                     </div>
                     
@@ -328,14 +334,13 @@
 
             errorDiv.style.display = 'none';
 
-            // Проверка данных
             if (!testId) {
                 errorDiv.textContent = 'Выберите тест';
                 errorDiv.style.display = 'block';
                 return;
             }
 
-            const selectedEmployees = Array.from(document.querySelectorAll('.employee-checkbox:checked'))
+            const selectedEmployees = Array.from(document.querySelectorAll('.employee-checkbox:checked:not(:disabled)'))
                 .map(cb => parseInt(cb.value));
 
             if (selectedEmployees.length === 0) {
@@ -344,18 +349,26 @@
                 return;
             }
 
-            // Форматируем дедлайн для API (если указан)
-            let deadlineISO = null;
-            if (deadline) {
-                const deadlineDate = new Date(deadline);
-                deadlineISO = deadlineDate.toISOString();
+            if (!deadline) {
+                errorDiv.textContent = 'Укажите дедлайн';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // Проверяем дедлайн (не может быть в прошлом)
+            const now = new Date();
+            const deadlineDate = new Date(deadline);
+            if (deadlineDate < now) {
+                errorDiv.textContent = 'Дедлайн не может быть в прошлом';
+                errorDiv.style.display = 'block';
+                return;
             }
 
             try {
-                const response = await apiService.assignTest(testId, selectedEmployees, deadlineISO);
+                const response = await apiService.assignTest(testId, selectedEmployees, deadline);
                 alert('Тест успешно назначен!');
                 closeAssignModal();
-                loadDashboardData(); // Обновляем данные
+                loadDashboardData();
             } catch (error) {
                 errorDiv.textContent = 'Ошибка назначения: ' + error.message;
                 errorDiv.style.display = 'block';
@@ -412,9 +425,9 @@
                                                             ${option.text}
                                                         </div>
                                                         ${option.isCorrect ?
-                                                            '<span style="color: var(--success); font-weight: 600; font-size: 0.875rem;">✓ Правильный</span>' :
-                                                            ''
-                                                        }
+                            '<span style="color: var(--success); font-weight: 600; font-size: 0.875rem;">✓ Правильный</span>' :
+                            ''
+                        }
                                                     </div>
                                                 `).join('')}
                                             </div>
@@ -569,6 +582,36 @@
                 }
             }, 100);
         }
+
+        function renderEmployeesInModal(employees, assignments) {
+            let employeesHtml = '';
+
+            employees.forEach(emp => {
+                // Проверяем, назначен ли уже тест этому сотруднику
+                const alreadyAssigned = assignments.some(a =>
+                    a.userId === emp.id && a.testId === selectedTestId
+                );
+
+                employeesHtml += `
+            <label style="display: block; margin-bottom: 0.5rem; padding: 0.5rem; 
+                   border: 1px solid ${alreadyAssigned ? 'var(--error)' : 'var(--gray-border)'}; 
+                   border-radius: var(--radius);
+                   background: ${alreadyAssigned ? '#fee2e2' : 'var(--white)'};
+                   ${alreadyAssigned ? 'opacity: 0.7;' : ''}">
+                <input type="checkbox" 
+                       class="employee-checkbox" 
+                       value="${emp.id}"
+                       ${alreadyAssigned ? 'disabled' : ''}
+                       ${alreadyAssigned ? 'onclick="return false;"' : ''}>
+                ${emp.firstName} ${emp.lastName} (${emp.email})
+                ${alreadyAssigned ? '<span style="color: var(--error); margin-left: 10px;">✓ Уже назначен</span>' : ''}
+            </label>
+        `;
+            });
+
+            return employeesHtml;
+        }
     </script>
 </body>
+
 </html>

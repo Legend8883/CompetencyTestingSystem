@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Все попытки - HR Панель</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .attempts-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--gray-border);
+            padding-bottom: 0.5rem;
+        }
+
+        .attempts-tab {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray-text);
+            border-radius: var(--radius) var(--radius) 0 0;
+            transition: all 0.2s;
+        }
+
+        .attempts-tab.active {
+            color: var(--primary-blue);
+            background: var(--primary-verylight);
+            border-bottom: 3px solid var(--primary-blue);
+        }
+
+        .attempts-tab:hover:not(.active) {
+            background: var(--gray-light);
+        }
+
+        .attempts-tab-badge {
+            display: inline-block;
+            margin-left: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--gray-border);
+            color: var(--gray-dark);
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .attempts-tab.active .attempts-tab-badge {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .attempt-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            border: 1px solid var(--gray-border);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .attempt-card:hover {
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow);
+        }
+
+        .attempt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .attempt-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .attempt-user-avatar {
+            width: 40px;
+            height: 40px;
+            background-color: var(--primary-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .attempt-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gray-border);
+        }
+
+        .attempt-detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .attempt-detail-label {
+            font-size: 0.875rem;
+            color: var(--gray-text);
+        }
+
+        .attempt-detail-value {
+            font-weight: 500;
+            color: var(--gray-dark);
+        }
+
+        .open-questions-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--warning);
+            color: white;
+            margin-left: 0.5rem;
+        }
+
+        /* Стили для фильтров и пустого состояния */
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--white);
+            border-radius: var(--radius);
+            border: 1px solid var(--gray-border);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-dark);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            color: var(--gray-text);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <a href="hr-dashboard.html" class="nav-brand">← Назад в панель</a>
+            <div style="display: flex; gap: 1rem;">
+                <span style="color: var(--gray-text); align-self: center;">HR</span>
+                <button onclick="authService.logout()" class="btn btn-outline">Выйти</button>
+            </div>
+        </nav>
+
+        <main>
+            <div class="dashboard-header">
+                <h2>Все попытки сотрудников</h2>
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">HR</div>
+                    <div>
+                        <div id="userName"></div>
+                        <div id="userEmail" style="font-size: 0.875rem; color: var(--gray-text);"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <div class="filter-label">Статус</div>
+                    <select id="statusFilter" class="form-control" onchange="filterAttempts()">
+                        <option value="all">Все статусы</option>
+                        <option value="IN_PROGRESS">В процессе</option>
+                        <option value="COMPLETED">На проверке</option>
+                        <option value="EVALUATED">Проверено</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <div class="filter-label">Тест</div>
+                    <select id="testFilter" class="form-control" onchange="filterAttempts()">
+                        <option value="all">Все тесты</option>
+                        <!-- Тесты будут загружены динамически -->
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <div class="filter-label">Период</div>
+                    <select id="periodFilter" class="form-control" onchange="filterAttempts()">
+                        <option value="all">За все время</option>
+                        <option value="today">Сегодня</option>
+                        <option value="week">За неделю</option>
+                        <option value="month">За месяц</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="attempts-tabs">
+                <button class="attempts-tab active" onclick="showTab('all')" id="tab-all">
+                    Все попытки
+                    <span class="attempts-tab-badge" id="badge-all">0</span>
+                </button>
+                <button class="attempts-tab" onclick="showTab('in_progress')" id="tab-in_progress">
+                    В процессе
+                    <span class="attempts-tab-badge" id="badge-in_progress">0</span>
+                </button>
+                <button class="attempts-tab" onclick="showTab('completed')" id="tab-completed">
+                    На проверке
+                    <span class="attempts-tab-badge" id="badge-completed">0</span>
+                </button>
+                <button class="attempts-tab" onclick="showTab('evaluated')" id="tab-evaluated">
+                    Проверено
+                    <span class="attempts-tab-badge" id="badge-evaluated">0</span>
+                </button>
+            </div>
+
+            <div id="attempts-container">
+                <div style="text-align: center; padding: 3rem;">
+                    <div class="loading-spinner"></div>
+                    <p style="color: var(--gray-text); margin-top: 20px;">Загрузка попыток...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        // Полный код из предыдущего ответа
+        let allAttempts = [];
+        let allTests = [];
+        let currentTab = 'all';
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            const token = localStorage.getItem('authToken');
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+
+            if (!token || !user || user.role !== 'HR') {
+                window.location.href = '../login.html';
+                return;
+            }
+
+            document.getElementById('userName').textContent = user.firstName + ' ' + user.lastName;
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('userAvatar').textContent =
+                (user.firstName[0] || '') + (user.lastName[0] || '');
+
+            await loadData();
+        });
+
+        // Обновляем бейджи
+        function updateBadges() {
+            const inProgressCount = allAttempts.filter(a => a.status === 'IN_PROGRESS').length;
+            const completedCount = allAttempts.filter(a => a.status === 'COMPLETED').length;
+            const evaluatedCount = allAttempts.filter(a => a.status === 'EVALUATED').length;
+
+            document.getElementById('badge-all').textContent = allAttempts.length;
+            document.getElementById('badge-in_progress').textContent = inProgressCount;
+            document.getElementById('badge-completed').textContent = completedCount;
+            document.getElementById('badge-evaluated').textContent = evaluatedCount;
+        }
+
+        // Показываем вкладку
+        function showTab(tabName) {
+            currentTab = tabName;
+
+            // Обновляем активную вкладку
+            document.querySelectorAll('.attempts-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            renderAttempts();
+        }
+
+        // Рендерим попытки
+        function renderAttempts() {
+            let filteredAttempts = [];
+
+            switch (currentTab) {
+                case 'all':
+                    filteredAttempts = allAttempts;
+                    break;
+                case 'in_progress':
+                    filteredAttempts = allAttempts.filter(a => a.status === 'IN_PROGRESS');
+                    break;
+                case 'completed':
+                    filteredAttempts = allAttempts.filter(a => a.status === 'COMPLETED');
+                    break;
+                case 'evaluated':
+                    filteredAttempts = allAttempts.filter(a => a.status === 'EVALUATED');
+                    break;
+            }
+
+            // Применяем фильтры
+            const statusFilter = document.getElementById('statusFilter').value;
+            const testFilter = document.getElementById('testFilter').value;
+            const periodFilter = document.getElementById('periodFilter').value;
+
+            if (statusFilter !== 'all') {
+                filteredAttempts = filteredAttempts.filter(a => a.status === statusFilter);
+            }
+
+            if (testFilter !== 'all') {
+                filteredAttempts = filteredAttempts.filter(a => a.testId == testFilter);
+            }
+
+            if (periodFilter !== 'all') {
+                const now = new Date();
+                filteredAttempts = filteredAttempts.filter(a => {
+                    const attemptDate = new Date(a.completedAt || a.startedAt);
+
+                    switch (periodFilter) {
+                        case 'today':
+                            return attemptDate.toDateString() === now.toDateString();
+                        case 'week':
+                            const weekAgo = new Date(now);
+                            weekAgo.setDate(now.getDate() - 7);
+                            return attemptDate >= weekAgo;
+                        case 'month':
+                            const monthAgo = new Date(now);
+                            monthAgo.setMonth(now.getMonth() - 1);
+                            return attemptDate >= monthAgo;
+                        default:
+                            return true;
+                    }
+                });
+            }
+
+            const container = document.getElementById('attempts-container');
+
+            if (filteredAttempts.length === 0) {
+                container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <h3 style="color: var(--gray-text); margin-bottom: 0.5rem;">Нет попыток</h3>
+                <p>В этой категории пока нет попыток</p>
+            </div>
+        `;
+                return;
+            }
+
+            container.innerHTML = filteredAttempts.map(attempt => `
+        <div class="attempt-card">
+            <div class="attempt-header">
+                <div>
+                    <h3 style="margin: 0 0 0.5rem;">${attempt.testTitle}</h3>
+                    <div class="attempt-user-info">
+                        <div class="attempt-user-avatar">
+                            ${getUserInitials(attempt.user)}
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;">${attempt.user.firstName} ${attempt.user.lastName}</div>
+                            <div style="font-size: 0.875rem; color: var(--gray-text);">${attempt.user.email}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: right;">
+                    <span class="status ${getAttemptStatusClass(attempt.status)}">
+                        ${getAttemptStatusLabel(attempt.status)}
+                    </span>
+                    ${attempt.status === 'COMPLETED' ?
+                    '<span class="open-questions-badge">Требует проверки</span>' : ''}
+                </div>
+            </div>
+            
+            <div class="attempt-details-grid">
+                <div class="attempt-detail-item">
+                    <span class="attempt-detail-label">Дата начала</span>
+                    <span class="attempt-detail-value">${formatDate(attempt.startedAt)}</span>
+                </div>
+                
+                <div class="attempt-detail-item">
+                    <span class="attempt-detail-label">Дата завершения</span>
+                    <span class="attempt-detail-value">
+                        ${attempt.completedAt ? formatDate(attempt.completedAt) : 'В процессе'}
+                    </span>
+                </div>
+                
+                <div class="attempt-detail-item">
+                    <span class="attempt-detail-label">Балл</span>
+                    <span class="attempt-detail-value" style="color: ${getScoreColor(attempt.score)}">
+                        ${attempt.score !== null ? attempt.score + ' / 100' : 'Не оценен'}
+                    </span>
+                </div>
+                
+                <div class="attempt-detail-item">
+                    <span class="attempt-detail-label">Результат</span>
+                    <span class="attempt-detail-value">
+                        ${attempt.passed !== null ?
+                    (attempt.passed ?
+                        '<span style="color: var(--success);">✓ Прошел</span>' :
+                        '<span style="color: var(--error);">✗ Не прошел</span>') :
+                    'Не определен'}
+                    </span>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--gray-border);">
+                <button onclick="viewAttemptDetails(${attempt.id})" class="btn btn-primary btn-small">
+                    ${attempt.status === 'IN_PROGRESS' ? 'Просмотр теста' :
+                    attempt.status === 'COMPLETED' || attempt.status === 'SUBMITTED' ? 'Оценить ответы' :
+                        'Просмотр результатов'}
+                </button>
+    
+                ${attempt.status === 'COMPLETED' || attempt.status === 'SUBMITTED' ? `
+                    <button onclick="completeEvaluation(${attempt.id})" class="btn btn-success btn-small">
+                        Завершить проверку
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `).join('');
+        }
+
+        // Вспомогательные функции
+        function getUserInitials(user) {
+            return (user.firstName[0] || '') + (user.lastName[0] || '');
+        }
+
+        function getScoreColor(score) {
+            if (score === null) return 'var(--gray-text)';
+            if (score >= 70) return 'var(--success)';
+            if (score >= 50) return 'var(--warning)';
+            return 'var(--error)';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Не указано';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getAttemptStatusClass(status) {
+            switch (status) {
+                case 'IN_PROGRESS': return 'status-pending';
+                case 'COMPLETED': return 'status-pending';
+                case 'EVALUATED': return 'status-active';
+                default: return 'status-inactive';
+            }
+        }
+
+        function getAttemptStatusLabel(status) {
+            const statuses = {
+                'IN_PROGRESS': 'В процессе',
+                'COMPLETED': 'На проверке',
+                'EVALUATED': 'Проверено'
+            };
+            return statuses[status] || status;
+        }
+
+        // Функции действий
+        async function viewAttemptDetails(attemptId) {
+            try {
+                // Открываем страницу результатов
+                window.open(`test-results.html?attemptId=${attemptId}&view=hr`, '_blank');
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
+        }
+
+        async function completeEvaluation(attemptId) {
+            if (!confirm('Завершить проверку этой попытки?')) {
+                return;
+            }
+
+            try {
+                await apiService.completeEvaluation(attemptId);
+                alert('Проверка завершена!');
+                await loadData(); // Перезагружаем данные
+            } catch (error) {
+                alert('Ошибка завершения проверки: ' + error.message);
+            }
+        }
+
+        // function sendReminder(attemptId) {
+        //     const email = prompt('Введите email для отправки напоминания:');
+        //     if (email) {
+        //         alert(`Напоминание отправлено на ${email}`);
+        //     }
+        // }
+
+        function filterAttempts() {
+            renderAttempts();
+        }
+
+        async function loadData() {
+            try {
+                // Загружаем попытки и тесты параллельно
+                const [attemptsResponse, testsResponse] = await Promise.all([
+                    apiService.getAllAttempts(),
+                    apiService.getHRTests()
+                ]);
+
+                allAttempts = attemptsResponse.data || [];
+                allTests = testsResponse.data || [];
+
+                populateTestFilter();
+                updateBadges();
+                renderAttempts();
+
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+                document.getElementById('attempts-container').innerHTML = `
+                    <div class="error-message" style="text-align: center; padding: 2rem;">
+                        Ошибка загрузки: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function populateTestFilter() {
+            const testFilter = document.getElementById('testFilter');
+            testFilter.innerHTML = '<option value="all">Все тесты</option>';
+
+            allTests.forEach(test => {
+                const option = document.createElement('option');
+                option.value = test.id;
+                option.textContent = test.title;
+                testFilter.appendChild(option);
+            });
+        }
+
+        // ВАЖНО: Добавляем метод в api.js
+        window.apiService = window.apiService || {};
+        apiService.getAllAttempts = async function () {
+            console.log('Fetching all attempts for HR...');
+            try {
+                const response = await fetch(`${API_BASE_URL}/hr/attempts/all`, {
+                    headers: this.getHeaders()
+                });
+                return this.handleResponse(response);
+            } catch (error) {
+                console.error('Error fetching attempts:', error);
+                return { success: false, data: [], message: error.message };
+            }
+        };
+
+    </script>
+</body>
+
+</html>

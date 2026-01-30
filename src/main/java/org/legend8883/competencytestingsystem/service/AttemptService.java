@@ -181,28 +181,58 @@ public class AttemptService {
         // Рассчитать итоговый балл
         calculateFinalScore(attempt);
 
-        // Определить новый статус
-        boolean hasOpenQuestions = hasOpenQuestions(attempt);
+        // ВАЖНОЕ ИСПРАВЛЕНИЕ:
+        // Проверяем, есть ли открытые вопросы в тесте (не в ответах!)
+        boolean hasOpenQuestionsInTest = hasOpenQuestionsInTest(attempt.getTest());
 
-        // ВАЖНО: Используйте только те статусы, которые есть в ENUM
-        if (hasOpenQuestions) {
-            // Используйте EVALUATING вместо SUBMITTED
-            attempt.setStatus(AttemptStatus.EVALUATING);
+        if (hasOpenQuestionsInTest) {
+            // Если в тесте ЕСТЬ открытые вопросы → SUBMITTED (отправлен на проверку)
+            attempt.setStatus(AttemptStatus.SUBMITTED);
         } else {
-            attempt.setStatus(AttemptStatus.COMPLETED);
+            // Если в тесте НЕТ открытых вопросов → EVALUATED (автоматически проверен)
+            attempt.setStatus(AttemptStatus.EVALUATED);
+            updateFinalScore(attempt);
         }
 
         attempt.setCompletedAt(LocalDateTime.now());
+        Attempt savedAttempt = attemptRepository.save(attempt);
 
-        try {
-            attemptRepository.save(attempt);
-            System.out.println("Test completed successfully with status: " + attempt.getStatus());
-        } catch (Exception e) {
-            System.err.println("ERROR saving attempt: " + e.getMessage());
-            throw new RuntimeException("Failed to save attempt: " + e.getMessage());
+        return createProgressResponse(savedAttempt);
+    }
+
+    private boolean hasOpenQuestionsInTest(Test test) {
+        if (test == null || test.getQuestions() == null) {
+            return false;
         }
 
-        return createProgressResponse(attempt);
+        return test.getQuestions().stream()
+                .anyMatch(q -> q.getType() == QuestionType.OPEN_ANSWER);
+    }
+
+    // Вспомогательный метод для проверки прохождения теста
+    private boolean isAttemptPassed(Attempt attempt) {
+        if (attempt.getScore() == null || attempt.getTest() == null ||
+                attempt.getTest().getPassingScore() == null) {
+            return false;
+        }
+        return attempt.getScore() >= attempt.getTest().getPassingScore();
+    }
+
+    // Добавляем метод для обновления финального балла
+    private void updateFinalScore(Attempt attempt) {
+        List<Answer> answers = answerRepository.findByAttempt(attempt);
+
+        int totalScore = answers.stream()
+                .mapToInt(answer -> {
+                    if (answer.getAssignedScore() != null) {
+                        return answer.getAssignedScore();
+                    }
+                    return answer.getAutoScore() != null ? answer.getAutoScore() : 0;
+                })
+                .sum();
+
+        attempt.setScore(totalScore);
+        attemptRepository.save(attempt);
     }
 
     // Получить прогресс теста
@@ -427,8 +457,12 @@ public class AttemptService {
         }
 
         Long selectedId = answer.getSelectedOptionIds().get(0);
-        AnswerOption selectedOption = answerOptionRepository.findById(selectedId)
-                .orElseThrow();
+
+        // Используем правильный метод для поиска варианта
+        AnswerOption selectedOption = question.getOptions().stream()
+                .filter(option -> option.getId().equals(selectedId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Option not found"));
 
         answer.setAutoScore(selectedOption.getIsCorrect() ? question.getMaxScore() : 0);
     }

@@ -151,7 +151,7 @@
         // Загружаем API сервис если не загружен
         if (!window.apiService) {
             // Создаем простой API сервис для регистрации
-            const API_BASE_URL = window.location.origin + "/api";
+            const API_BASE_URL = 'http://localhost:8080/api';
 
             window.apiService = {
                 async register(userData) {

@@ -1,4 +1,4 @@
-const API_BASE_URL = window.location.origin + "/api";
+const API_BASE_URL = 'http://localhost:8080/api';
 
 class ApiService {
     constructor() {
@@ -249,7 +249,7 @@ class ApiService {
             method: 'POST',
             headers: this.getHeaders(),
             body: JSON.stringify({
-                questionId,
+                questionId, // <-- Должен быть первым параметром
                 ...answerData
             })
         });
@@ -337,6 +337,42 @@ class ApiService {
             body: JSON.stringify({ questionId })
         });
 
+        return this.handleResponse(response);
+    }
+
+    // Для сотрудника: получить результаты попытки
+    async getAttemptResults(attemptId) {
+        console.log('Fetching attempt results:', attemptId);
+        const response = await fetch(`${API_BASE_URL}/employee/attempts/${attemptId}/results`, {
+            headers: this.getHeaders()
+        });
+        return this.handleResponse(response);
+    }
+
+    // Для сотрудника: получить попытку с ответами (для статуса "На проверке")
+    async getAttemptWithAnswers(attemptId) {
+        console.log('Fetching attempt with answers:', attemptId);
+        const response = await fetch(`${API_BASE_URL}/employee/attempts/${attemptId}/with-answers`, {
+            headers: this.getHeaders()
+        });
+        return this.handleResponse(response);
+    }
+
+    // Для HR: получить все попытки
+    async getAllAttempts() {
+        console.log('Fetching all attempts for HR...');
+        const response = await fetch(`${API_BASE_URL}/hr/attempts/all`, {
+            headers: this.getHeaders()
+        });
+        return this.handleResponse(response);
+    }
+
+    // Для HR: получить детали попытки
+    async getAttemptDetailsForHR(attemptId) {
+        console.log('Fetching attempt details for HR:', attemptId);
+        const response = await fetch(`${API_BASE_URL}/hr/attempts/${attemptId}/full`, {
+            headers: this.getHeaders()
+        });
         return this.handleResponse(response);
     }
 }

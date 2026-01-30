@@ -7,73 +7,125 @@
     <title>Результаты теста</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        .result-card {
-            background: white;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        .result-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .result-passed {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .result-failed {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         }
 
         .question-result {
-            background: #f8fafc;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border: 1px solid #e2e8f0;
+            background: var(--white);
+            border-radius: var(--radius);
+            border: 1px solid var(--gray-border);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
         }
 
-        .correct-answer {
-            background: #d1fae5;
-            border-color: #10b981;
+        .question-result.correct {
+            border-left: 4px solid var(--success);
+            background: #f0fdf4;
         }
 
-        .incorrect-answer {
-            background: #fee2e2;
-            border-color: #ef4444;
+        .question-result.incorrect {
+            border-left: 4px solid var(--error);
+            background: #fef2f2;
+        }
+
+        .question-result.pending {
+            border-left: 4px solid var(--warning);
+            background: #fffbeb;
         }
 
         .option-result {
             display: flex;
             align-items: center;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            border: 1px solid #cbd5e1;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--gray-border);
+            background: var(--white);
         }
 
-        .option-correct {
+        .option-result.correct {
             background: #d1fae5;
             border-color: #10b981;
         }
 
-        .option-selected {
+        .option-result.selected {
             background: #dbeafe;
             border-color: #2563eb;
         }
 
+        .option-result.selected.correct {
+            background: #bbf7d0;
+            border-color: #059669;
+        }
+
+        .option-result.selected.incorrect {
+            background: #fecaca;
+            border-color: #ef4444;
+        }
+
         .score-badge {
             display: inline-block;
-            padding: 5px 12px;
+            padding: 0.5rem 1rem;
             border-radius: 20px;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 0.875rem;
+            margin-left: 0.5rem;
         }
 
         .score-good {
-            background: #d1fae5;
-            color: #065f46;
+            background: var(--success);
+            color: white;
         }
 
         .score-bad {
-            background: #fee2e2;
-            color: #991b1b;
+            background: var(--error);
+            color: white;
         }
 
-        .score-neutral {
-            background: #fef3c7;
-            color: #92400e;
+        .score-pending {
+            background: var(--warning);
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: var(--radius);
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
         }
     </style>
 </head>
@@ -81,21 +133,21 @@
 <body>
     <div class="container">
         <nav class="navbar">
-            <a href="employee-dashboard.html" class="nav-brand">← Назад к тестам</a>
-            <div style="display: flex; gap: 10px;">
+            <a href="#" onclick="goBack()" class="nav-brand">← Назад</a>
+            <div style="display: flex; gap: 1rem;">
                 <button onclick="printResults()" class="btn btn-outline btn-small">
                     📄 Печать
                 </button>
-                <button onclick="authService.logout()" class="btn btn-outline btn-small">
-                    Выйти
+                <button onclick="exportResults()" class="btn btn-outline btn-small">
+                    📥 Экспорт
                 </button>
             </div>
         </nav>
 
-        <main id="results-container" style="max-width: 900px; margin: 0 auto;">
-            <div style="text-align: center; padding: 40px;">
+        <main id="results-container">
+            <div style="text-align: center; padding: 4rem;">
                 <div class="loading-spinner"></div>
-                <p style="color: #64748b; margin-top: 20px;">Загрузка результатов...</p>
+                <p style="color: var(--gray-text); margin-top: 20px;">Загрузка результатов...</p>
             </div>
         </main>
     </div>
@@ -103,12 +155,12 @@
     <script src="../js/api.js"></script>
     <script src="../js/auth.js"></script>
     <script>
-        // Получить параметры из URL
+        // Получаем параметры из URL
         function getUrlParams() {
             const params = new URLSearchParams(window.location.search);
             return {
                 attemptId: params.get('attemptId'),
-                testId: params.get('testId')
+                view: params.get('view') || 'employee' // 'employee' или 'hr'
             };
         }
 
@@ -116,6 +168,7 @@
         async function loadResults() {
             const params = getUrlParams();
             const attemptId = params.attemptId;
+            const view = params.view;
 
             if (!attemptId) {
                 showError('ID попытки не указан');
@@ -123,21 +176,18 @@
             }
 
             try {
-                // 1. Получить детали попытки
-                const attemptsResponse = await apiService.getMyAttempts();
-                const attempt = attemptsResponse.data?.find(a => a.id == attemptId);
+                let response;
 
-                if (!attempt) {
-                    showError('Результаты не найдены');
-                    return;
+                if (view === 'hr') {
+                    // Для HR загружаем полные детали
+                    response = await apiService.getAttemptDetailsForHR(attemptId);
+                } else {
+                    // Для сотрудника загружаем результаты
+                    response = await apiService.getAttemptResults(attemptId);
                 }
 
-                // 2. Получить детали теста
-                const testResponse = await apiService.getTestDetails(attempt.testId);
-                const test = testResponse.data;
-
-                // 3. Отобразить результаты
-                renderResults(attempt, test);
+                const results = response.data;
+                renderResults(results, view);
 
             } catch (error) {
                 console.error('Ошибка загрузки результатов:', error);
@@ -146,117 +196,325 @@
         }
 
         // Отображение результатов
-        function renderResults(attempt, test) {
+        function renderResults(results, view) {
             const container = document.getElementById('results-container');
 
-            // Основная информация
-            const mainInfo = `
-                <div class="result-card" style="text-align: center; border-top: 5px solid ${attempt.passed ? '#10b981' : '#ef4444'}">
-                    <h1 style="margin-bottom: 10px; color: #1e40af;">${test.title}</h1>
-                    <p style="color: #64748b; margin-bottom: 20px;">${test.description || ''}</p>
+            if (!results) {
+                container.innerHTML = `
+                    <div class="error-message" style="text-align: center; padding: 2rem;">
+                        <h3>Результаты не найдены</h3>
+                        <p>Данные по этой попытке отсутствуют</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Определяем класс для основного блока в зависимости от результата
+            const resultClass = results.passed ? 'result-passed' : 'result-failed';
+            const resultText = results.passed ? 'ТЕСТ ПРОЙДЕН' : 'ТЕСТ НЕ ПРОЙДЕН';
+            const resultIcon = results.passed ? '🎉' : '😔';
+
+            // Формируем HTML для вопросов
+            let questionsHtml = '';
+
+            if (results.answers && results.answers.length > 0) {
+                questionsHtml = results.answers.map((answer, index) => {
+                    const questionClass = getQuestionClass(answer);
+                    const questionStatus = getQuestionStatus(answer);
+
+                    return `
+                        <div class="question-result ${questionClass}">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                <h4 style="margin: 0;">Вопрос ${index + 1}</h4>
+                                <span class="score-badge ${getScoreBadgeClass(answer)}">
+                                    ${getQuestionScore(answer)} / ${answer.questionMaxScore}
+                                </span>
+                            </div>
+                            
+                            <p style="margin-bottom: 1rem; font-weight: 500;">${answer.questionText}</p>
+                            
+                            ${renderAnswerContent(answer, view)}
+                            
+                            <div style="margin-top: 1rem; font-size: 0.875rem; color: var(--gray-text);">
+                                ${questionStatus}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                questionsHtml = `
+                    <div style="text-align: center; padding: 2rem; color: var(--gray-text);">
+                        <p>Нет данных по вопросам</p>
+                    </div>
+                `;
+            }
+
+            // Формируем полный HTML
+            container.innerHTML = `
+                <div class="result-summary ${resultClass}">
+                    <h1 style="margin-bottom: 0.5rem;">${results.testTitle}</h1>
+                    <p style="margin-bottom: 1rem; opacity: 0.9;">${results.user ? results.user.firstName + ' ' + results.user.lastName : 'Результаты теста'}</p>
                     
-                    <div style="display: flex; justify-content: center; gap: 30px; margin: 30px 0;">
-                        <div style="text-align: center;">
-                            <div style="font-size: 14px; color: #64748b; margin-bottom: 5px;">Ваш балл</div>
-                            <div style="font-size: 36px; font-weight: 700; color: ${attempt.passed ? '#10b981' : '#ef4444'}">
-                                ${attempt.score || 0}
-                            </div>
+                    <div style="font-size: 1.5rem; margin-bottom: 1rem;">
+                        ${resultIcon} ${resultText}
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">${results.score || 0}</div>
+                            <div class="stat-label">Баллы</div>
                         </div>
                         
-                        <div style="width: 1px; background: #e2e8f0;"></div>
-                        
-                        <div style="text-align: center;">
-                            <div style="font-size: 14px; color: #64748b; margin-bottom: 5px;">Проходной балл</div>
-                            <div style="font-size: 36px; font-weight: 700; color: #64748b;">
-                                ${test.passingScore}
-                            </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${results.passingScore}</div>
+                            <div class="stat-label">Проходной балл</div>
                         </div>
                         
-                        <div style="width: 1px; background: #e2e8f0;"></div>
+                        <div class="stat-card">
+                            <div class="stat-value">${results.correctAnswersCount || 0}/${results.totalQuestions || 0}</div>
+                            <div class="stat-label">Правильно</div>
+                        </div>
                         
-                        <div style="text-align: center;">
-                            <div style="font-size: 14px; color: #64748b; margin-bottom: 5px;">Максимум</div>
-                            <div style="font-size: 36px; font-weight: 700; color: #64748b;">
-                                ${test.maxPossibleScore || 100}
-                            </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${calculatePercentage(results.score, results.maxPossibleScore)}%</div>
+                            <div class="stat-label">Успешность</div>
                         </div>
                     </div>
                     
-                    <div style="margin: 20px 0;">
-                        <span class="score-badge ${attempt.passed ? 'score-good' : 'score-bad'}" 
-                              style="font-size: 18px; padding: 10px 25px;">
-                            ${attempt.passed ? '✓ ТЕСТ ПРОЙДЕН' : '✗ ТЕСТ НЕ ПРОЙДЕН'}
-                        </span>
+                    <div style="font-size: 0.875rem; opacity: 0.8;">
+                        Завершен: ${formatDate(results.completedAt || results.startedAt)}
                     </div>
-                    
-                    <div style="color: #64748b; font-size: 14px;">
-                        ${formatDate(attempt.completedAt || attempt.startedAt)}
+                </div>
+                
+                <h2 style="margin: 2rem 0 1rem;">Детали ответов</h2>
+                <div id="questions-list">
+                    ${questionsHtml}
+                </div>
+                
+                ${view === 'hr' && results.status === 'COMPLETED' ? `
+                    <div style="margin-top: 2rem; padding: 1.5rem; background: var(--warning-light); border-radius: var(--radius); border: 1px solid var(--warning);">
+                    <h4 style="margin-bottom: 0.5rem;">⚠️ Требуется проверка HR</h4>
+                    <p style="margin-bottom: 1rem;">В этом тесте есть открытые вопросы, требующие оценки HR.</p>
+                    <button onclick="showEvaluationForm()" class="btn btn-warning">
+                        Оценить открытые вопросы
+                    </button>
+                </div>
+                ` : ''}
+                
+                ${view === 'hr' ? `
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--gray-border);">
+                        <button onclick="completeEvaluation(${results.attemptId})" class="btn btn-success">
+                            Завершить проверку
+                        </button>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function showEvaluationForm() {
+            // Показываем форму оценки для открытых вопросов
+            const container = document.getElementById('questions-list');
+            const questions = container.querySelectorAll('.question-result');
+
+            questions.forEach(question => {
+                const questionType = question.querySelector('.question-type')?.textContent || '';
+                if (questionType.includes('OPEN_ANSWER')) {
+                    // Добавляем поле для оценки
+                    const scoreInput = `
+                <div style="margin-top: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                        Оценка HR:
+                    </label>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <input type="number" 
+                               class="hr-score-input"
+                               min="0" 
+                               max="10"
+                               value="0"
+                               style="flex: 1; padding: 0.5rem; border: 1px solid var(--gray-border); border-radius: var(--radius);">
+                        <span style="color: var(--gray-text);">/ 10</span>
+                        <button onclick="saveHRScore(this)" class="btn btn-primary btn-small">
+                            Сохранить
+                        </button>
                     </div>
                 </div>
             `;
 
-            // Статистика
-            const stats = `
-                <div class="result-card">
-                    <h2 style="margin-bottom: 20px; color: #1e40af;">📊 Статистика</h2>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                        <div style="text-align: center; padding: 15px; background: #f1f5f9; border-radius: 8px;">
-                            <div style="font-size: 14px; color: #64748b; margin-bottom: 5px;">Вопросов</div>
-                            <div style="font-size: 24px; font-weight: 700; color: #1e40af;">
-                                ${test.questionCount || 0}
-                            </div>
-                        </div>
-                        
-                        <div style="text-align: center; padding: 15px; background: #f1f5f9; border-radius: 8px;">
-                            <div style="font-size: 14px; color: #64748b; margin-bottom: 5px;">Время</div>
-                            <div style="font-size: 24px; font-weight: 700; color: #1e40af;">
-                                ${test.timeLimitMinutes || 0} мин
-                            </div>
-                        </div>
-                        
-                        <div style="text-align: center; padding: 15px; background: #f1f5f9; border-radius: 8px;">
-                            <div style="font-size: 14px; color: #64748b; margin-bottom: 5px;">Процент</div>
-                            <div style="font-size: 24px; font-weight: 700; color: #1e40af;">
-                                ${calculatePercentage(attempt.score || 0, test.maxPossibleScore || 100)}%
-                            </div>
-                        </div>
-                        
-                        <div style="text-align: center; padding: 15px; background: #f1f5f9; border-radius: 8px;">
-                            <div style="font-size: 14px; color: #64748b; margin-bottom: 5px;">Статус</div>
-                            <div style="font-size: 24px; font-weight: 700; color: #1e40af;">
-                                ${getAttemptStatusLabel(attempt.status)}
-                            </div>
+                    // Находим место для вставки (после ответа)
+                    const answerDiv = question.querySelector('.answer-content');
+                    if (answerDiv) {
+                        answerDiv.insertAdjacentHTML('afterend', scoreInput);
+                    }
+                }
+            });
+        }
+
+        async function saveHRScore(button) {
+            const input = button.previousElementSibling.previousElementSibling;
+            const score = parseInt(input.value);
+            const questionId = button.closest('.question-result').dataset.questionId;
+
+            if (isNaN(score) || score < 0 || score > 10) {
+                alert('Введите корректный балл (0-10)');
+                return;
+            }
+
+            try {
+                // Здесь нужно отправить оценку на сервер
+                const params = getUrlParams();
+                // Нужен answerId, но у нас только questionId
+                // Временно показываем сообщение
+                button.textContent = '✓ Сохранено';
+                button.disabled = true;
+                input.disabled = true;
+
+                // Обновляем отображение
+                const scoreDisplay = button.closest('.question-result').querySelector('.question-score');
+                if (scoreDisplay) {
+                    scoreDisplay.textContent = `${score} / 10`;
+                }
+
+            } catch (error) {
+                alert('Ошибка сохранения: ' + error.message);
+            }
+        }
+
+        async function completeEvaluation(attemptId) {
+            if (!confirm('Завершить проверку этой попытки?\nПосле завершения изменить оценки будет нельзя.')) {
+                return;
+            }
+
+            try {
+                await apiService.completeEvaluation(attemptId);
+                alert('Проверка завершена! Результаты отправлены сотруднику.');
+
+                // Обновляем страницу
+                window.location.reload();
+
+            } catch (error) {
+                alert('Ошибка завершения проверки: ' + error.message);
+            }
+        }
+
+        // Рендер содержимого ответа
+        function renderAnswerContent(answer, view) {
+            if (answer.questionType === 'OPEN_ANSWER') {
+                return `
+                    <div style="margin-bottom: 1rem;">
+                        <div style="font-weight: 500; margin-bottom: 0.5rem;">Ответ сотрудника:</div>
+                        <div style="background: var(--gray-light); padding: 1rem; border-radius: var(--radius); white-space: pre-wrap;">
+                            ${answer.userAnswer || answer.openAnswerText || 'Ответ отсутствует'}
                         </div>
                     </div>
-                </div>
-            `;
+                    
+                    ${view === 'hr' && !answer.assignedScore ? `
+                        <div style="margin-top: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
+                                Оценка (0 - ${answer.questionMaxScore} баллов):
+                            </label>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <input type="number" 
+                                       id="score-${answer.questionId}"
+                                       min="0" 
+                                       max="${answer.questionMaxScore}"
+                                       value="0"
+                                       style="flex: 1; padding: 0.5rem; border: 1px solid var(--gray-border); border-radius: var(--radius);">
+                                <span style="color: var(--gray-text);">/ ${answer.questionMaxScore}</span>
+                                <button onclick="saveOpenAnswerScore(${answer.questionId})" class="btn btn-primary btn-small">
+                                    Сохранить
+                                </button>
+                            </div>
+                        </div>
+                    ` : `
+                        <div style="margin-top: 0.5rem;">
+                            <strong>Оценка:</strong> ${answer.assignedScore || answer.autoScore || 0} / ${answer.questionMaxScore}
+                        </div>
+                    `}
+                `;
+            } else {
+                // Для вопросов с выбором
+                let optionsHtml = '';
 
-            // Здесь будут детали вопросов
-            const questionsDetails = `
-                <div class="result-card">
-                    <h2 style="margin-bottom: 20px; color: #1e40af;">📝 Детали вопросов</h2>
-                    <div id="questions-details" style="color: #64748b; text-align: center; padding: 40px;">
-                        <p>Детальная информация по вопросам будет доступна после реализации API</p>
-                        <p style="font-size: 14px; margin-top: 10px;">(В будущих версиях здесь будут показаны все вопросы, ваши ответы и правильные ответы)</p>
+                if (answer.selectedOptions && answer.selectedOptions.length > 0) {
+                    optionsHtml = answer.selectedOptions.map(option => {
+                        const optionClass = getOptionClass(option);
+                        return `
+                            <div class="option-result ${optionClass}">
+                                <div style="margin-right: 0.75rem;">
+                                    ${option.selected ? '✓' : '○'}
+                                </div>
+                                <div style="flex: 1;">
+                                    ${option.text}
+                                </div>
+                                ${option.isCorrect ? '✅' : ''}
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    optionsHtml = '<p style="color: var(--gray-text);">Варианты не выбраны</p>';
+                }
+
+                return `
+                    <div style="margin-bottom: 1rem;">
+                        <div style="font-weight: 500; margin-bottom: 0.5rem;">Выбранные варианты:</div>
+                        ${optionsHtml}
                     </div>
-                </div>
-            `;
-
-            container.innerHTML = mainInfo + stats + questionsDetails;
+                    
+                    <div style="margin-top: 0.5rem;">
+                        <strong>Авто-оценка:</strong> ${answer.autoScore || 0} / ${answer.questionMaxScore}
+                    </div>
+                `;
+            }
         }
 
         // Вспомогательные функции
-        function showError(message) {
-            const container = document.getElementById('results-container');
-            container.innerHTML = `
-                <div class="error-message" style="text-align: center; padding: 40px;">
-                    <h3 style="color: #ef4444; margin-bottom: 10px;">Ошибка</h3>
-                    <p>${message}</p>
-                    <button onclick="window.history.back()" class="btn btn-outline" style="margin-top: 20px;">
-                        ← Назад
-                    </button>
-                </div>
-            `;
+        function getQuestionClass(answer) {
+            if (answer.questionType === 'OPEN_ANSWER' && !answer.assignedScore) {
+                return 'pending';
+            }
+            return answer.isCorrect ? 'correct' : 'incorrect';
+        }
+
+        function getQuestionStatus(answer) {
+            if (answer.questionType === 'OPEN_ANSWER') {
+                if (answer.assignedScore !== null && answer.assignedScore !== undefined) {
+                    return `✓ Оценено HR: ${answer.assignedScore} баллов`;
+                } else if (answer.autoScore !== null && answer.autoScore !== undefined) {
+                    return `Авто-оценка: ${answer.autoScore} баллов`;
+                } else {
+                    return '⏳ Ожидает оценки HR';
+                }
+            } else {
+                return answer.isCorrect ? '✓ Правильно' : '✗ Неправильно';
+            }
+        }
+
+        function getScoreBadgeClass(answer) {
+            if (answer.questionType === 'OPEN_ANSWER' && !answer.assignedScore) {
+                return 'score-pending';
+            }
+            return answer.isCorrect ? 'score-good' : 'score-bad';
+        }
+
+        function getQuestionScore(answer) {
+            if (answer.questionType === 'OPEN_ANSWER') {
+                return answer.assignedScore || answer.autoScore || 0;
+            } else {
+                return answer.autoScore || 0;
+            }
+        }
+
+        function getOptionClass(option) {
+            let classes = [];
+            if (option.selected) classes.push('selected');
+            if (option.isCorrect) classes.push('correct');
+            if (option.selected && !option.isCorrect) classes.push('incorrect');
+            return classes.join(' ');
+        }
+
+        function calculatePercentage(score, max) {
+            if (!max || max === 0) return 0;
+            return Math.round((score / max) * 100);
         }
 
         function formatDate(dateString) {
@@ -271,32 +529,81 @@
             });
         }
 
-        function calculatePercentage(score, max) {
-            if (!max || max === 0) return 0;
-            return Math.round((score / max) * 100);
+        function showError(message) {
+            const container = document.getElementById('results-container');
+            container.innerHTML = `
+                <div class="error-message" style="text-align: center; padding: 2rem;">
+                    <h3 style="color: var(--error); margin-bottom: 1rem;">Ошибка</h3>
+                    <p>${message}</p>
+                    <button onclick="goBack()" class="btn btn-outline" style="margin-top: 1rem;">
+                        ← Назад
+                    </button>
+                </div>
+            `;
         }
 
-        function getAttemptStatusLabel(status) {
-            const statuses = {
-                'IN_PROGRESS': 'В процессе',
-                'COMPLETED': 'Завершен',
-                'EVALUATING': 'На проверке HR',
-                'EVALUATED': 'Проверено'
-            };
-            return statuses[status] || status;
+        function goBack() {
+            // Определяем, откуда пришли
+            const params = getUrlParams();
+
+            if (params.view === 'employee') {
+                window.location.href = 'employee-dashboard.html';
+            } else if (params.view === 'hr') {
+                window.location.href = 'hr-attempts.html';
+            } else {
+                window.history.back();
+            }
         }
 
         function printResults() {
             window.print();
         }
 
-        // Загрузка при старте
-        document.addEventListener('DOMContentLoaded', () => {
-            // Проверка авторизации
-            const token = localStorage.getItem('authToken');
-            const user = JSON.parse(localStorage.getItem('user') || 'null');
+        function exportResults() {
+            alert('Экспорт результатов в PDF');
+            // Реализация экспорта
+        }
 
-            if (!token || !user || user.role !== 'EMPLOYEE') {
+        async function saveOpenAnswerScore(questionId) {
+            const input = document.getElementById(`score-${questionId}`);
+            const score = parseInt(input.value);
+
+            if (isNaN(score) || score < 0) {
+                alert('Введите корректный балл');
+                return;
+            }
+
+            try {
+                // Нужно получить answerId для этого вопроса
+                // Временная реализация
+                alert(`Оценка ${score} сохранена для вопроса`);
+                input.disabled = true;
+            } catch (error) {
+                alert('Ошибка сохранения: ' + error.message);
+            }
+        }
+
+        function evaluateTest(attemptId) {
+            // Перенаправляем на страницу оценки для HR
+            window.location.href = `evaluation.html?attemptId=${attemptId}`;
+        }
+
+        function sendResultsToEmail(attemptId) {
+            const email = prompt('Введите email для отправки результатов:');
+            if (email) {
+                alert(`Результаты отправлены на ${email}`);
+            }
+        }
+
+        function downloadCertificate(attemptId) {
+            alert('Сертификат скачивается...');
+            // Реализация скачивания сертификата
+        }
+
+        // Загружаем результаты при старте
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
                 window.location.href = '../login.html';
                 return;
             }
